@@ -1,6 +1,7 @@
 package models
 
 type Team struct {
-	player1 string
-	player2 string
+	Name    string
+	Player1 *Player
+	Player2 *Player
 }

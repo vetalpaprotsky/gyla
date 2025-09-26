@@ -1,6 +1,6 @@
 package models
 
 type Turn struct {
-	player string
+	player Player
 	card   Card
 }

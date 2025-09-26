@@ -6,18 +6,31 @@ import (
 	"math/rand"
 )
 
+// TODO: It might be easier to use fields like hand1, hand2, ...
+// "starter" won't be needed then. Strict order will be shown right away.
 type Round struct {
-	hands         []Hand
-	tricks        []Trick
-	trump         string
-	staringPlayer string
+	number  int
+	hands   []Hand
+	tricks  []Trick
+	trump   string
+	starter Player
 }
 
-func NewRound(players []string) (*Round, error) {
+func NewRound(players []Player, lastRound *Round) (*Round, error) {
 	round := Round{}
 	err := round.dealHands(players)
 	if err != nil {
 		return nil, err
+	}
+
+	if lastRound == nil {
+		round.starter = *round.findPlayerWithNineOfDiamonds()
+	} else {
+		if lastRound.winnerTeam().Name == lastRound.starter.Name {
+			round.starter = lastRound.starter
+		} else {
+			round.starter = *lastRound.starter.LeftOpponent
+		}
 	}
 
 	return &round, nil
@@ -42,7 +55,7 @@ func (r *Round) AssignTrump(suit string) error {
 	return nil
 }
 
-func (r *Round) dealHands(players []string) error {
+func (r *Round) dealHands(players []Player) error {
 	if len(players) != handsCount {
 		errorMsg := fmt.Sprintf(
 			"Number of players must be %d, not %d",
@@ -65,6 +78,24 @@ func (r *Round) dealHands(players []string) error {
 	}
 
 	return nil
+}
+
+func (r *Round) findPlayerWithNineOfDiamonds() *Player {
+	for _, hand := range r.hands {
+		for _, card := range hand.cards {
+			if card.rank == NineRank && card.suit == DiamondsSuit {
+				return &hand.player
+			}
+		}
+	}
+
+	// Not expected
+	return nil
+}
+
+func (r *Round) winnerTeam() Team {
+	// TODO
+	return Team{}
 }
 
 func createShuffledDeckOfCards() []Card {

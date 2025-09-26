@@ -5,7 +5,7 @@ import (
 )
 
 type Hand struct {
-	player string
+	player Player
 	cards  []Card
 }
 
@@ -16,7 +16,7 @@ func (hand Hand) String() string {
 		cardsStr[i] = c.String()
 	}
 
-	return hand.player + ": " + strings.Join(cardsStr, " ")
+	return hand.player.Name + ": " + strings.Join(cardsStr, " ")
 }
 
 func (hand Hand) assignTrump(suit string) {
