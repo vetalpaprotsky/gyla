@@ -1,25 +1,35 @@
 package models
 
 type Game struct {
-	rounds []Round
-	team1  *Team
-	team2  *Team
+	rounds  []Round
+	player1 *Player
+	player2 *Player
+	player3 *Player
+	player4 *Player
 }
 
-func (g Game) player1() Player {
-	return *g.team1.Player1
+// TODO: It should receive names of all players and teams, and initialize
+// all every field like in main.go. It can even start a first round?
+func NewGame() {
+
 }
 
-func (g Game) player2() Player {
-	return *g.team2.Player1
+// TODO
+func NewGameFromJSON() {
+
 }
 
-func (g Game) player3() Player {
-	return *g.team1.Player2
+// TODO
+func (g Game) ToJSON() {
+
 }
 
-func (g Game) player4() Player {
-	return *g.team2.Player2
+func (g Game) team1() Team {
+	return *g.player1.Team
+}
+
+func (g Game) team2() Team {
+	return *g.player3.Team
 }
 
 func (g Game) score() Score {
