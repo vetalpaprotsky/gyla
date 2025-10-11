@@ -1,7 +1,5 @@
 package models
 
-// TODO: It might be easier to use fields like turn1, turn2, ...
-// "starter" won't be needed then. Strict order will be shown right away.
 type Trick struct {
 	number  int
 	starter Player

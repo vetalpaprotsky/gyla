@@ -6,14 +6,12 @@ import (
 	"math/rand"
 )
 
-// TODO: It might be easier to use fields like hand1, hand2, ...
-// "starter" won't be needed then. Strict order will be shown right away.
 type Round struct {
 	number  int
 	hands   []Hand
 	tricks  []Trick
 	trump   string
-	starter Player
+	Starter Player
 }
 
 func NewRound(players []Player, lastRound *Round) (*Round, error) {
@@ -24,12 +22,12 @@ func NewRound(players []Player, lastRound *Round) (*Round, error) {
 	}
 
 	if lastRound == nil {
-		round.starter = *round.findPlayerWithNineOfDiamonds()
+		round.Starter = *round.findPlayerWithNineOfDiamonds()
 	} else {
-		if lastRound.winnerTeam().Name == lastRound.starter.Name {
-			round.starter = lastRound.starter
+		if lastRound.winnerTeam().Name == lastRound.Starter.Name {
+			round.Starter = lastRound.Starter
 		} else {
-			round.starter = *lastRound.starter.LeftOpponent
+			round.Starter = *lastRound.Starter.LeftOpponent
 		}
 	}
 
