@@ -1,6 +1,6 @@
 package models
 
-type Turn struct {
+type Move struct {
 	player Player
 	card   Card
 }

@@ -14,27 +14,69 @@ type Round struct {
 	Starter Player
 }
 
-func NewRound(players []Player, lastRound *Round) (*Round, error) {
-	round := Round{}
-	err := round.dealHands(players)
+// TODO: Add error if more than max number of rounds started
+func NewRound(players []Player, curRound *Round) (*Round, error) {
+	newRound := Round{}
+	err := newRound.dealHands(players)
 	if err != nil {
 		return nil, err
 	}
 
-	if lastRound == nil {
-		round.Starter = *round.findPlayerWithNineOfDiamonds()
+	if curRound == nil {
+		newRound.Starter = *newRound.findPlayerWithNineOfDiamonds()
+		newRound.number = 1
 	} else {
-		if lastRound.winnerTeam().Name == lastRound.Starter.Name {
-			round.Starter = lastRound.Starter
+		if curRound.winnerTeam().Name == curRound.Starter.Name {
+			newRound.Starter = curRound.Starter
 		} else {
-			round.Starter = *lastRound.Starter.LeftOpponent
+			newRound.Starter = *curRound.Starter.LeftOpponent
+		}
+		newRound.number = curRound.number + 1
+	}
+
+	return &newRound, nil
+}
+
+func (r *Round) CurrentTrick() *Trick {
+	if len(r.tricks) == 0 {
+		return nil
+	}
+
+	trick := &r.tricks[0]
+	for i := 1; i < len(r.tricks); i++ {
+		if r.tricks[i].number > trick.number {
+			trick = &r.tricks[i]
 		}
 	}
 
-	return &round, nil
+	return trick
 }
 
-func (r *Round) AssignTrump(suit string) error {
+func (r *Round) startTrick() {
+	curTrick := r.CurrentTrick()
+	var trick *Trick
+
+	if curTrick == nil {
+		trick = NewFirstTrick(r.Starter)
+	} else {
+		trick = NewTrick(curTrick)
+	}
+
+	r.tricks = append(r.tricks, *trick)
+}
+
+func (r *Round) starterHand() *Hand {
+	for i := 0; i < len(r.hands); i++ {
+		if r.hands[i].player.Name == r.Starter.Name {
+			return &r.hands[i]
+		}
+	}
+
+	// Not expected
+	return nil
+}
+
+func (r *Round) assignTrump(suit string) error {
 	if r.trump != "" {
 		errorMsg := fmt.Sprintf(
 			"Can't assign %s trump, it's already assigned to %s",
@@ -79,8 +121,12 @@ func (r *Round) dealHands(players []Player) error {
 }
 
 func (r *Round) findPlayerWithNineOfDiamonds() *Player {
-	for _, hand := range r.hands {
-		for _, card := range hand.cards {
+	for i := 0; i < len(r.hands); i++ {
+		hand := r.hands[i]
+
+		for j := 0; j < len(hand.cards); j++ {
+			card := hand.cards[j]
+
 			if card.rank == NineRank && card.suit == DiamondsSuit {
 				return &hand.player
 			}

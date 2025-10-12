@@ -46,30 +46,77 @@ func NewGame(p1, p2, p3, p4 string) *Game {
 	}
 }
 
-func (g Game) StartRound() (*Round, error) {
-	players := []Player{g.player1, g.player2, g.player3, g.player4}
-	round, err := NewRound(players, g.findLastRound())
+// TODO: These callback functions must be reconsindered for sure.
+// They shouldn't force user to implement some game logic.
+// They must allow user only perform an action that is required
+// from the user: choose trump, make a move.
+func (game *Game) StartGameLoop(
+	stateChange func(g *Game),
+	playerMove func(p Player, availableCardsForMove []Card) Card,
+	trumpAssignment func(h Hand) string,
+) error {
+	// Fresh new game starter
+	stateChange(game)
 
-	if err != nil {
-		return nil, err
+	for roundNum := 1; roundNum < maxPossibleNumberOfRounds; roundNum++ {
+		err := game.startRound()
+
+		if err != nil {
+			return err
+		}
+
+		// Round starter and cards got dealt.
+		stateChange(game)
+
+		round := game.CurrentRound()
+		trump := trumpAssignment(*round.starterHand())
+		round.assignTrump(trump)
+
+		// Round trump assigned
+		stateChange(game)
+
+		for trickNum := 1; trickNum <= tricksPerRoundCount; trickNum++ {
+			round.startTrick()
+
+			// TODO: Players take moves, they are stored in the trick.
+			// Once the trick is complete, we know which team won.
+			// Then the next trick starts.
+
+			// 4 moves loop
+		}
+
+		// TODO: End loop if there's a winner team
 	}
 
-	return round, nil
+	return nil
 }
 
-func (g Game) findLastRound() *Round {
+func (g Game) CurrentRound() *Round {
 	if len(g.rounds) == 0 {
 		return nil
 	}
 
-	lastRound := &g.rounds[0]
+	curRound := &g.rounds[0]
 	for i := 1; i < len(g.rounds); i++ {
-		if g.rounds[i].number > lastRound.number {
-			lastRound = &g.rounds[i]
+		if g.rounds[i].number > curRound.number {
+			curRound = &g.rounds[i]
 		}
 	}
 
-	return lastRound
+	return curRound
+}
+
+func (g *Game) startRound() error {
+	players := []Player{g.player1, g.player2, g.player3, g.player4}
+	round, err := NewRound(players, g.CurrentRound())
+
+	if err != nil {
+		return err
+	}
+
+	g.rounds = append(g.rounds, *round)
+
+	return nil
 }
 
 // TODO

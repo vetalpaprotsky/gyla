@@ -3,48 +3,52 @@ package models
 type Trick struct {
 	number  int
 	starter Player
-	turns   []Turn
+	moves   []Move
 }
 
 func NewFirstTrick(starter Player) *Trick {
 	return &Trick{number: 1, starter: starter}
 }
 
-func NewTrick(prevTrick *Trick) *Trick {
-	return &Trick{number: prevTrick.number + 1, starter: prevTrick.winner()}
+// TODO: Add error is more than 4 tricks started
+func NewTrick(curTrick *Trick) *Trick {
+	return &Trick{number: curTrick.number + 1, starter: curTrick.winner()}
 }
 
-func (trick Trick) winningTurn() Turn {
-	firstTurn := *trick.firstTurn()
-	winningTurn := firstTurn
+// TODO: Add error if trick isn't completed (len(t.moves) != 4)
+// In that case it should return *Move and error
+func (t Trick) winMove() Move {
+	firstMove := *t.firstMove()
+	winMove := firstMove
 
-	if trick.hasAnyTrumps() {
-		for _, turn := range trick.turns {
-			if turn.card.level() > winningTurn.card.level() {
-				winningTurn = turn
+	if t.hasAnyTrumps() {
+		for _, move := range t.moves {
+			if move.card.level() > winMove.card.level() {
+				winMove = move
 			}
 		}
 	} else {
-		leadingSuit := firstTurn.card.suit
+		leadingSuit := firstMove.card.suit
 
-		for _, turn := range trick.turns {
-			if turn.card.suit == leadingSuit && turn.card.level() > winningTurn.card.level() {
-				winningTurn = turn
+		for _, move := range t.moves {
+			if move.card.suit == leadingSuit && move.card.level() > winMove.card.level() {
+				winMove = move
 			}
 		}
 	}
 
-	return winningTurn
+	return winMove
 }
 
-func (trick Trick) winner() Player {
-	return trick.winningTurn().player
+func (t Trick) winner() Player {
+	return t.winMove().player
 }
 
-func (trick Trick) firstTurn() *Turn {
-	for _, turn := range trick.turns {
-		if turn.player.Name == trick.starter.Name {
-			return &turn
+func (t Trick) firstMove() *Move {
+	for i := 0; i < len(t.moves); i++ {
+		move := &t.moves[i]
+		if move.player.Name == t.starter.Name {
+			return move
 		}
 	}
 
@@ -52,9 +56,9 @@ func (trick Trick) firstTurn() *Turn {
 	return nil
 }
 
-func (trick Trick) hasAnyTrumps() bool {
-	for _, turn := range trick.turns {
-		if turn.card.isTrump {
+func (t Trick) hasAnyTrumps() bool {
+	for _, move := range t.moves {
+		if move.card.isTrump {
 			return true
 		}
 	}
