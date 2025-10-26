@@ -48,11 +48,11 @@ func (c Card) isDefaultTrump() bool {
 	return c.rank == SevenRank || c.rank == JackRank
 }
 
-func (c Card) level() uint {
-	var level uint
+func (c Card) level() int {
+	var level int
 
 	if c.isDefaultTrump() {
-		switch c.ID() {
+		switch c.id() {
 		case SevenRank + ClubsSuit:
 			level = 21
 		case SevenRank + SpadesSuit:
@@ -109,27 +109,6 @@ func (c Card) level() uint {
 	return level
 }
 
-func (c Card) ID() string {
+func (c Card) id() string {
 	return c.rank + c.suit
-}
-
-func (c Card) String() string {
-	var suit string
-
-	switch c.suit {
-	case ClubsSuit:
-		suit = "♣"
-	case SpadesSuit:
-		suit = "♠"
-	case HeartsSuit:
-		suit = "♥"
-	case DiamondsSuit:
-		suit = "♦"
-	}
-
-	if c.isTrump {
-		return "*" + c.rank + suit
-	} else {
-		return c.rank + suit
-	}
 }
