@@ -52,7 +52,7 @@ func TestGot[T comparable](got, want T) string {
 	return ""
 }
 
-func FunctionCallName(funcName string, args ...any) string {
+func FunctionCallName(funcName string, args ...string) string {
 	result := fmt.Sprintf("%s(", funcName)
 
 	for i, v := range args {
@@ -65,6 +65,6 @@ func FunctionCallName(funcName string, args ...any) string {
 	return result + ")"
 }
 
-func MethodCallName[T any](obj T, funcName string, args ...any) string {
+func MethodCallName[T any](obj T, funcName string, args ...string) string {
 	return fmt.Sprintf("%T%+v.%s", obj, obj, FunctionCallName(funcName, args...))
 }

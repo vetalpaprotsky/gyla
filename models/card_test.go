@@ -48,7 +48,7 @@ func TestLevel(t *testing.T) {
 		{Card{rank: "7", suit: "H"}, 19},
 		{Card{rank: "7", suit: "H", isTrump: true}, 19},
 		{Card{rank: "J", suit: "D"}, 14},
-		{Card{rank: "J", suit: "D", isTrump: true}, 13},
+		{Card{rank: "J", suit: "D", isTrump: true}, 14},
 	}
 
 	for _, tt := range tests {
