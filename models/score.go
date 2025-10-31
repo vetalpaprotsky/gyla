@@ -5,7 +5,7 @@ type Score struct {
 	team2 int
 }
 
-func NewScore(rounds []Round) Score {
+func newScore(rounds []Round) Score {
 	// TODO: Calculate score based on rounds.
 	return Score{}
 }

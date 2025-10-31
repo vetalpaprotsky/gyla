@@ -15,7 +15,7 @@ type Round struct {
 }
 
 // TODO: Add error if more than max number of rounds started
-func NewRound(players []Player, curRound *Round) (*Round, error) {
+func newRound(players []Player, curRound *Round) (*Round, error) {
 	newRound := Round{}
 	err := newRound.dealHands(players)
 	if err != nil {
@@ -37,7 +37,7 @@ func NewRound(players []Player, curRound *Round) (*Round, error) {
 	return &newRound, nil
 }
 
-func (r *Round) CurrentTrick() *Trick {
+func (r *Round) currentTrick() *Trick {
 	if len(r.tricks) == 0 {
 		return nil
 	}
@@ -52,17 +52,19 @@ func (r *Round) CurrentTrick() *Trick {
 	return trick
 }
 
-func (r *Round) startTrick() {
-	curTrick := r.CurrentTrick()
+func (r *Round) startNextTrick() *Trick {
+	curTrick := r.currentTrick()
 	var trick *Trick
 
 	if curTrick == nil {
-		trick = NewFirstTrick(r.Starter)
+		trick = newFirstTrick(r.Starter)
 	} else {
-		trick = NewTrick(curTrick)
+		trick = newTrick(curTrick)
 	}
 
 	r.tricks = append(r.tricks, *trick)
+
+	return trick
 }
 
 func (r *Round) starterHand() *Hand {
@@ -74,6 +76,25 @@ func (r *Round) starterHand() *Hand {
 
 	// Not expected
 	return nil
+}
+
+func (r *Round) findHand(player Player) *Hand {
+	for i := 0; i < len(r.hands); i++ {
+		if r.hands[i].player.Name == player.Name {
+			return &r.hands[i]
+		}
+	}
+
+	// Not expected
+	return nil
+}
+
+func (r *Round) nextTrickStarterHand() *Hand {
+	if len(r.tricks) == 0 {
+		return r.starterHand()
+	} else {
+		return r.findHand(r.currentTrick().winner())
+	}
 }
 
 func (r *Round) assignTrump(suit string) error {

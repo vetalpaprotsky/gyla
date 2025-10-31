@@ -46,43 +46,50 @@ func NewGame(p1, p2, p3, p4 string) *Game {
 	}
 }
 
-// TODO: These callback functions must be reconsindered for sure.
-// They shouldn't force user to implement some game logic.
-// They must allow user only perform an action that is required
-// from the user: choose trump, make a move.
 func (game *Game) StartGameLoop(
-	stateChange func(g *Game),
-	playerMove func(p Player, availableCardsForMove []Card) Card,
-	trumpAssignment func(h Hand) string,
+	stateChangeCallback func(g *Game),
+	playerTrumpAssignmentCallback func(h Player, cards []Card) string,
+	playerCardChoiceCallback func(p Player, cards []Card) Card,
 ) error {
-	// Fresh new game starter
-	stateChange(game)
+	// Fresh new game starter.
+	stateChangeCallback(game)
 
 	for roundNum := 1; roundNum < maxPossibleNumberOfRounds; roundNum++ {
-		err := game.startRound()
+		round, err := game.startNextRound()
 
 		if err != nil {
 			return err
 		}
 
 		// Round starter and cards got dealt.
-		stateChange(game)
+		stateChangeCallback(game)
 
-		round := game.CurrentRound()
-		trump := trumpAssignment(*round.starterHand())
+		trump := playerTrumpAssignmentCallback(
+			round.starterHand().player,
+			round.starterHand().cards,
+		)
+
+		// Round trump assigned.
 		round.assignTrump(trump)
-
-		// Round trump assigned
-		stateChange(game)
+		stateChangeCallback(game)
 
 		for trickNum := 1; trickNum <= tricksPerRoundCount; trickNum++ {
-			round.startTrick()
+			trickStarterHand := round.nextTrickStarterHand()
+			trick := round.startNextTrick()
+			player := trickStarterHand.player
+			card := playerCardChoiceCallback(
+				player, trickStarterHand.availableCardsForMove(*trick),
+			)
 
-			// TODO: Players take moves, they are stored in the trick.
-			// Once the trick is complete, we know which team won.
-			// Then the next trick starts.
+			// TODO: You can place these 2 methods in a round, and something
+			// like: round.takeMove() {
+			//   round.currentTrick().lastMove().player.leftOpponent...
+			// }
+			trickStarterHand.takeMove(card)
+			trick.addMove(player, card)
 
-			// 4 moves loop
+			// TODO Do moves for the rest 3 players
+			// player.LeftOpponent - that's the next player
 		}
 
 		// TODO: End loop if there's a winner team
@@ -91,7 +98,7 @@ func (game *Game) StartGameLoop(
 	return nil
 }
 
-func (g Game) CurrentRound() *Round {
+func (g Game) currentRound() *Round {
 	if len(g.rounds) == 0 {
 		return nil
 	}
@@ -106,17 +113,17 @@ func (g Game) CurrentRound() *Round {
 	return curRound
 }
 
-func (g *Game) startRound() error {
+func (g *Game) startNextRound() (*Round, error) {
 	players := []Player{g.player1, g.player2, g.player3, g.player4}
-	round, err := NewRound(players, g.CurrentRound())
+	round, err := newRound(players, g.currentRound())
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	g.rounds = append(g.rounds, *round)
 
-	return nil
+	return round, nil
 }
 
 // TODO
@@ -138,5 +145,5 @@ func (g Game) team2() Team {
 }
 
 func (g Game) score() Score {
-	return NewScore(g.rounds)
+	return newScore(g.rounds)
 }

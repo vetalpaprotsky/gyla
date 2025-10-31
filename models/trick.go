@@ -6,13 +6,19 @@ type Trick struct {
 	moves   []Move
 }
 
-func NewFirstTrick(starter Player) *Trick {
+func newFirstTrick(starter Player) *Trick {
 	return &Trick{number: 1, starter: starter}
 }
 
 // TODO: Add error is more than 4 tricks started
-func NewTrick(curTrick *Trick) *Trick {
+func newTrick(curTrick *Trick) *Trick {
 	return &Trick{number: curTrick.number + 1, starter: curTrick.winner()}
+}
+
+// TODO: Add error if more than 4 moves added, or same player added, or same card
+// added.
+func (t *Trick) addMove(player Player, card Card) {
+	t.moves = append(t.moves, Move{player: player, card: card})
 }
 
 // TODO: Add error if trick isn't completed (len(t.moves) != 4)
