@@ -7,7 +7,7 @@ import (
 )
 
 type Round struct {
-	number  int
+	Number  int
 	Hands   []Hand
 	tricks  []Trick
 	Trump   string
@@ -24,27 +24,27 @@ func newRound(players []Player, curRound *Round) (*Round, error) {
 
 	if curRound == nil {
 		newRound.starter = *newRound.findPlayerWithNineOfDiamonds()
-		newRound.number = 1
+		newRound.Number = 1
 	} else {
 		if curRound.winnerTeam().Name == curRound.starter.Name {
 			newRound.starter = curRound.starter
 		} else {
 			newRound.starter = *curRound.starter.leftOpponent
 		}
-		newRound.number = curRound.number + 1
+		newRound.Number = curRound.Number + 1
 	}
 
 	return &newRound, nil
 }
 
-func (r *Round) currentTrick() *Trick {
+func (r *Round) CurrentTrick() *Trick {
 	if len(r.tricks) == 0 {
 		return nil
 	}
 
 	trick := &r.tricks[0]
 	for i := 1; i < len(r.tricks); i++ {
-		if r.tricks[i].number > trick.number {
+		if r.tricks[i].Number > trick.Number {
 			trick = &r.tricks[i]
 		}
 	}
@@ -53,7 +53,7 @@ func (r *Round) currentTrick() *Trick {
 }
 
 func (r *Round) startNextTrick() *Trick {
-	curTrick := r.currentTrick()
+	curTrick := r.CurrentTrick()
 	var trick *Trick
 
 	if curTrick == nil {
@@ -143,11 +143,11 @@ func (r *Round) findPlayerWithNineOfDiamonds() *Player {
 func (r *Round) takeMove(player Player, card Card) {
 	hand := r.getHand(player)
 	hand.takeMove(card)
-	r.currentTrick().addMove(player, card)
+	r.CurrentTrick().addMove(player, card)
 }
 
 func (r *Round) availableCardsForMove(player Player) []Card {
-	trick := *r.currentTrick()
+	trick := *r.CurrentTrick()
 	hand := r.getHand(player)
 
 	return hand.availableCardsForMove(trick)

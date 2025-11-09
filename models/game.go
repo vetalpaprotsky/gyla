@@ -81,12 +81,16 @@ func (game *Game) StartGameLoop(
 			// New trick started.
 			stateChangeCallback(game)
 
-			for p := starter; p.Name != starter.Name; p = *p.leftOpponent {
+			for p := starter; ; p = *p.leftOpponent {
 				card := playerMoveCallback(p.Name, round.availableCardsForMove(p))
 				round.takeMove(p, card)
 
 				// Move taken.
 				stateChangeCallback(game)
+
+				if p.leftOpponent.Name == starter.Name {
+					break
+				}
 			}
 		}
 
@@ -104,7 +108,7 @@ func (g Game) CurrentRound() *Round {
 
 	curRound := &g.Rounds[0]
 	for i := 1; i < len(g.Rounds); i++ {
-		if g.Rounds[i].number > curRound.number {
+		if g.Rounds[i].Number > curRound.Number {
 			curRound = &g.Rounds[i]
 		}
 	}
