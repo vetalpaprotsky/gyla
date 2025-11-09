@@ -1,5 +1,11 @@
 package models
 
+// TODO: once GameState model is created, we could make almost all fields
+// in all structs start with a lower letter (private fields).
+//
+// GameState - stores game state without diving into details. Very useful for
+// rendering a view.
+
 type Game struct {
 	Rounds  []Round
 	Player1 Player

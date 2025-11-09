@@ -27,7 +27,6 @@ func stateChangeCallback(g *models.Game) {
 	// TODO Current trick
 }
 
-// TODO: if suit is invalid, ask for one more attempt.
 func playerTrumpAssignmentCallback(player string, cards []models.Card) string {
 	for {
 		var suit string
