@@ -10,13 +10,13 @@ func newFirstTrick(starter Player) *Trick {
 	return &Trick{number: 1, starter: starter}
 }
 
-// TODO: Add error is more than 4 tricks started
+// TODO: Add error is more than 9 tricks started, or curTrick isn't finished.
 func newTrick(curTrick *Trick) *Trick {
 	return &Trick{number: curTrick.number + 1, starter: curTrick.winner()}
 }
 
 // TODO: Add error if more than 4 moves added, or same player added, or same card
-// added.
+// added, or order is incorrect(last player move be a right opponent of the current player).
 func (t *Trick) addMove(player Player, card Card) {
 	t.moves = append(t.moves, Move{player: player, card: card})
 }

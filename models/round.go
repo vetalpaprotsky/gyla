@@ -11,7 +11,7 @@ type Round struct {
 	hands   []Hand
 	tricks  []Trick
 	trump   string
-	Starter Player
+	starter Player
 }
 
 // TODO: Add error if more than max number of rounds started
@@ -23,13 +23,13 @@ func newRound(players []Player, curRound *Round) (*Round, error) {
 	}
 
 	if curRound == nil {
-		newRound.Starter = *newRound.findPlayerWithNineOfDiamonds()
+		newRound.starter = *newRound.findPlayerWithNineOfDiamonds()
 		newRound.number = 1
 	} else {
-		if curRound.winnerTeam().Name == curRound.Starter.Name {
-			newRound.Starter = curRound.Starter
+		if curRound.winnerTeam().Name == curRound.starter.Name {
+			newRound.starter = curRound.starter
 		} else {
-			newRound.Starter = *curRound.Starter.LeftOpponent
+			newRound.starter = *curRound.starter.leftOpponent
 		}
 		newRound.number = curRound.number + 1
 	}
@@ -57,7 +57,7 @@ func (r *Round) startNextTrick() *Trick {
 	var trick *Trick
 
 	if curTrick == nil {
-		trick = newFirstTrick(r.Starter)
+		trick = newFirstTrick(r.starter)
 	} else {
 		trick = newTrick(curTrick)
 	}
@@ -67,18 +67,7 @@ func (r *Round) startNextTrick() *Trick {
 	return trick
 }
 
-func (r *Round) starterHand() *Hand {
-	for i := 0; i < len(r.hands); i++ {
-		if r.hands[i].player.Name == r.Starter.Name {
-			return &r.hands[i]
-		}
-	}
-
-	// Not expected
-	return nil
-}
-
-func (r *Round) findHand(player Player) *Hand {
+func (r *Round) getHand(player Player) *Hand {
 	for i := 0; i < len(r.hands); i++ {
 		if r.hands[i].player.Name == player.Name {
 			return &r.hands[i]
@@ -87,14 +76,6 @@ func (r *Round) findHand(player Player) *Hand {
 
 	// Not expected
 	return nil
-}
-
-func (r *Round) nextTrickStarterHand() *Hand {
-	if len(r.tricks) == 0 {
-		return r.starterHand()
-	} else {
-		return r.findHand(r.currentTrick().winner())
-	}
 }
 
 func (r *Round) assignTrump(suit string) error {
@@ -156,6 +137,20 @@ func (r *Round) findPlayerWithNineOfDiamonds() *Player {
 
 	// Not expected
 	return nil
+}
+
+// TODO: Check for errors and return them if needed.
+func (r *Round) takeMove(player Player, card Card) {
+	hand := r.getHand(player)
+	hand.takeMove(card)
+	r.currentTrick().addMove(player, card)
+}
+
+func (r *Round) availableCardsForMove(player Player) []Card {
+	trick := *r.currentTrick()
+	hand := r.getHand(player)
+
+	return hand.availableCardsForMove(trick)
 }
 
 func (r *Round) winnerTeam() Team {

@@ -14,21 +14,21 @@ func NewGame(p1, p2, p3, p4 string) *Game {
 	player3 := Player{Name: p3}
 	player4 := Player{Name: p4}
 
-	player1.LeftOpponent = &player2
-	player1.Teammate = &player3
-	player1.RightOpponent = &player4
+	player1.leftOpponent = &player2
+	player1.teammate = &player3
+	player1.rightOpponent = &player4
 
-	player2.LeftOpponent = &player3
-	player2.Teammate = &player4
-	player2.RightOpponent = &player1
+	player2.leftOpponent = &player3
+	player2.teammate = &player4
+	player2.rightOpponent = &player1
 
-	player3.LeftOpponent = &player4
-	player3.Teammate = &player1
-	player3.RightOpponent = &player2
+	player3.leftOpponent = &player4
+	player3.teammate = &player1
+	player3.rightOpponent = &player2
 
-	player4.LeftOpponent = &player1
-	player4.Teammate = &player2
-	player4.RightOpponent = &player3
+	player4.leftOpponent = &player1
+	player4.teammate = &player2
+	player4.rightOpponent = &player3
 
 	team1 := Team{Name: "team1", Player1: &player1, Player2: &player3}
 	team2 := Team{Name: "team2", Player1: &player2, Player2: &player4}
@@ -48,13 +48,13 @@ func NewGame(p1, p2, p3, p4 string) *Game {
 
 func (game *Game) StartGameLoop(
 	stateChangeCallback func(g *Game),
-	playerTrumpAssignmentCallback func(h Player, cards []Card) string,
-	playerCardChoiceCallback func(p Player, cards []Card) Card,
+	playerTrumpAssignmentCallback func(p Player, cards []Card) string,
+	playerMoveCallback func(p Player, cards []Card) Card,
 ) error {
 	// Fresh new game starter.
 	stateChangeCallback(game)
 
-	for roundNum := 1; roundNum < maxPossibleNumberOfRounds; roundNum++ {
+	for range maxPossibleNumberOfRounds {
 		round, err := game.startNextRound()
 
 		if err != nil {
@@ -65,34 +65,33 @@ func (game *Game) StartGameLoop(
 		stateChangeCallback(game)
 
 		trump := playerTrumpAssignmentCallback(
-			round.starterHand().player,
-			round.starterHand().cards,
+			round.starter,
+			round.getHand(round.starter).cards,
 		)
 
-		// Round trump assigned.
 		round.assignTrump(trump)
+
+		// Round trump assigned.
 		stateChangeCallback(game)
 
-		for trickNum := 1; trickNum <= tricksPerRoundCount; trickNum++ {
-			trickStarterHand := round.nextTrickStarterHand()
+		for range tricksPerRoundCount {
 			trick := round.startNextTrick()
-			player := trickStarterHand.player
-			card := playerCardChoiceCallback(
-				player, trickStarterHand.availableCardsForMove(*trick),
-			)
+			starter := trick.starter
 
-			// TODO: You can place these 2 methods in a round, and something
-			// like: round.takeMove() {
-			//   round.currentTrick().lastMove().player.leftOpponent...
-			// }
-			trickStarterHand.takeMove(card)
-			trick.addMove(player, card)
+			// New trick started.
+			stateChangeCallback(game)
 
-			// TODO Do moves for the rest 3 players
-			// player.LeftOpponent - that's the next player
+			for p := starter; p.Name != starter.Name; p = *p.leftOpponent {
+				card := playerMoveCallback(p, round.availableCardsForMove(p))
+				round.takeMove(p, card)
+
+				// Move taken.
+				stateChangeCallback(game)
+			}
 		}
 
-		// TODO: End loop if there's a winner team
+		// TODO: End loop if there's a winner team. That can be checked
+		// with a help of Score struct.
 	}
 
 	return nil

@@ -47,22 +47,22 @@ func (h *Hand) availableCardsForMove(trick Trick) []Card {
 }
 
 func (h *Hand) takeMove(card Card) error {
-	cardsAfterMove := make([]Card, 0, len(h.cards))
+	newCards := make([]Card, 0, len(h.cards))
 
 	for _, c := range h.cards {
 		if c != card {
-			cardsAfterMove = append(cardsAfterMove, c)
+			newCards = append(newCards, c)
 		}
 	}
 
 	// This means that none of the cards in the hand match the card that
-	// was passed to the function. It's not expected. You can't make a move
-	// with a card that you don't have.
-	if len(cardsAfterMove) == len(h.cards) {
+	// was passed to the function. It's not expected. You can't take a move with
+	// a card that you don't have.
+	if len(newCards) == len(h.cards) {
 		return fmt.Errorf("Player %s doesn't have card %s", h.player.Name, card.id())
 	}
 
-	h.cards = cardsAfterMove
+	h.cards = newCards
 
 	return nil
 }
