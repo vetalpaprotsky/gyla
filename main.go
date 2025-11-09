@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+// TODO: once GameState model is created, we could make almost all fields
+// in all structs start with a lower letter (private fields).
+//
+// GameState - stores game state without diving into details. Very useful for
+// rendering a view.
 func stateChangeCallback(g *models.Game) {
 	fmt.Printf("Player 1: %s", g.Player1.Name)
 	fmt.Printf("Player 2: %s", g.Player2.Name)
