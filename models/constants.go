@@ -19,14 +19,14 @@ const (
 	AceRank   = "A"
 )
 
-var validSuits = [suitsCount]string{
+var ValidSuits = [suitsCount]string{
 	ClubsSuit,
 	SpadesSuit,
 	HeartsSuit,
 	DiamondsSuit,
 }
 
-var validRanks = [ranksCount]string{
+var ValidRanks = [ranksCount]string{
 	SixRank,
 	SevenRank,
 	EightRank,

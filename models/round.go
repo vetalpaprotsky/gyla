@@ -8,9 +8,9 @@ import (
 
 type Round struct {
 	number  int
-	hands   []Hand
+	Hands   []Hand
 	tricks  []Trick
-	trump   string
+	Trump   string
 	starter Player
 }
 
@@ -68,9 +68,9 @@ func (r *Round) startNextTrick() *Trick {
 }
 
 func (r *Round) getHand(player Player) *Hand {
-	for i := 0; i < len(r.hands); i++ {
-		if r.hands[i].player.Name == player.Name {
-			return &r.hands[i]
+	for i := 0; i < len(r.Hands); i++ {
+		if r.Hands[i].Player.Name == player.Name {
+			return &r.Hands[i]
 		}
 	}
 
@@ -79,19 +79,19 @@ func (r *Round) getHand(player Player) *Hand {
 }
 
 func (r *Round) assignTrump(suit string) error {
-	if r.trump != "" {
+	if r.Trump != "" {
 		errorMsg := fmt.Sprintf(
-			"Can't assign %s trump, it's already assigned to %s",
+			"Can't assign %s Trump, it's already assigned to %s",
 			suit,
-			r.trump,
+			r.Trump,
 		)
 		return errors.New(errorMsg)
 	}
 
-	r.trump = suit
+	r.Trump = suit
 
-	for i := 0; i < len(r.hands); i++ {
-		r.hands[i].assignTrump(suit)
+	for i := 0; i < len(r.Hands); i++ {
+		r.Hands[i].assignTrump(suit)
 	}
 
 	return nil
@@ -107,30 +107,30 @@ func (r *Round) dealHands(players []Player) error {
 		return errors.New(errorMsg)
 	}
 
-	if len(r.hands) > 0 {
+	if len(r.Hands) > 0 {
 		return errors.New("Hands have been dealt already")
 	}
 
 	deck := createShuffledDeckOfCards()
-	r.hands = make([]Hand, handsCount)
+	r.Hands = make([]Hand, handsCount)
 	for i := range handsCount {
 		start := i * cardsInHandCount
 		end := start + cardsInHandCount
-		r.hands[i] = Hand{player: players[i], cards: deck[start:end]}
+		r.Hands[i] = Hand{Player: players[i], Cards: deck[start:end]}
 	}
 
 	return nil
 }
 
 func (r *Round) findPlayerWithNineOfDiamonds() *Player {
-	for i := 0; i < len(r.hands); i++ {
-		hand := r.hands[i]
+	for i := 0; i < len(r.Hands); i++ {
+		hand := r.Hands[i]
 
-		for j := 0; j < len(hand.cards); j++ {
-			card := hand.cards[j]
+		for j := 0; j < len(hand.Cards); j++ {
+			card := hand.Cards[j]
 
-			if card.rank == NineRank && card.suit == DiamondsSuit {
-				return &hand.player
+			if card.Rank == NineRank && card.Suit == DiamondsSuit {
+				return &hand.Player
 			}
 		}
 	}
@@ -166,7 +166,7 @@ func createShuffledDeckOfCards() []Card {
 	for i := range ranksCount {
 		for j := range suitsCount {
 			randInx := shuffledIndexes[k]
-			card, _ := newCard(validRanks[i], validSuits[j]) // safe to ignore error
+			card, _ := newCard(ValidRanks[i], ValidSuits[j]) // safe to ignore error
 			deck[randInx] = *card
 			k++
 		}

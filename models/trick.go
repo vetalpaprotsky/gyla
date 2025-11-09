@@ -3,7 +3,7 @@ package models
 type Trick struct {
 	number  int
 	starter Player
-	moves   []Move
+	Moves   []Move
 }
 
 func newFirstTrick(starter Player) *Trick {
@@ -18,26 +18,26 @@ func newTrick(curTrick *Trick) *Trick {
 // TODO: Add error if more than 4 moves added, or same player added, or same card
 // added, or order is incorrect(last player move be a right opponent of the current player).
 func (t *Trick) addMove(player Player, card Card) {
-	t.moves = append(t.moves, Move{player: player, card: card})
+	t.Moves = append(t.Moves, Move{Player: player, Card: card})
 }
 
-// TODO: Add error if trick isn't completed (len(t.moves) != 4)
+// TODO: Add error if trick isn't completed (len(t.Moves) != 4)
 // In that case it should return *Move and error
 func (t Trick) winMove() Move {
 	firstMove := *t.firstMove()
 	winMove := firstMove
 
 	if t.hasAnyTrumps() {
-		for _, move := range t.moves {
-			if move.card.level() > winMove.card.level() {
+		for _, move := range t.Moves {
+			if move.Card.level() > winMove.Card.level() {
 				winMove = move
 			}
 		}
 	} else {
-		leadingSuit := firstMove.card.suit
+		leadingSuit := firstMove.Card.Suit
 
-		for _, move := range t.moves {
-			if move.card.suit == leadingSuit && move.card.level() > winMove.card.level() {
+		for _, move := range t.Moves {
+			if move.Card.Suit == leadingSuit && move.Card.level() > winMove.Card.level() {
 				winMove = move
 			}
 		}
@@ -47,13 +47,13 @@ func (t Trick) winMove() Move {
 }
 
 func (t Trick) winner() Player {
-	return t.winMove().player
+	return t.winMove().Player
 }
 
 func (t Trick) firstMove() *Move {
-	for i := 0; i < len(t.moves); i++ {
-		move := &t.moves[i]
-		if move.player.Name == t.starter.Name {
+	for i := 0; i < len(t.Moves); i++ {
+		move := &t.Moves[i]
+		if move.Player.Name == t.starter.Name {
 			return move
 		}
 	}
@@ -63,8 +63,8 @@ func (t Trick) firstMove() *Move {
 }
 
 func (t Trick) hasAnyTrumps() bool {
-	for _, move := range t.moves {
-		if move.card.isTrump {
+	for _, move := range t.Moves {
+		if move.Card.isTrump {
 			return true
 		}
 	}

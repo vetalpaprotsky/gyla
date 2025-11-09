@@ -1,55 +1,55 @@
 package models
 
 type Game struct {
-	rounds  []Round
-	player1 Player
-	player2 Player
-	player3 Player
-	player4 Player
+	Rounds  []Round
+	Player1 Player
+	Player2 Player
+	Player3 Player
+	Player4 Player
 }
 
 func NewGame(p1, p2, p3, p4 string) *Game {
-	player1 := Player{Name: p1}
-	player2 := Player{Name: p2}
-	player3 := Player{Name: p3}
-	player4 := Player{Name: p4}
+	Player1 := Player{Name: p1}
+	Player2 := Player{Name: p2}
+	Player3 := Player{Name: p3}
+	Player4 := Player{Name: p4}
 
-	player1.leftOpponent = &player2
-	player1.teammate = &player3
-	player1.rightOpponent = &player4
+	Player1.leftOpponent = &Player2
+	Player1.teammate = &Player3
+	Player1.rightOpponent = &Player4
 
-	player2.leftOpponent = &player3
-	player2.teammate = &player4
-	player2.rightOpponent = &player1
+	Player2.leftOpponent = &Player3
+	Player2.teammate = &Player4
+	Player2.rightOpponent = &Player1
 
-	player3.leftOpponent = &player4
-	player3.teammate = &player1
-	player3.rightOpponent = &player2
+	Player3.leftOpponent = &Player4
+	Player3.teammate = &Player1
+	Player3.rightOpponent = &Player2
 
-	player4.leftOpponent = &player1
-	player4.teammate = &player2
-	player4.rightOpponent = &player3
+	Player4.leftOpponent = &Player1
+	Player4.teammate = &Player2
+	Player4.rightOpponent = &Player3
 
-	team1 := Team{Name: "team1", Player1: &player1, Player2: &player3}
-	team2 := Team{Name: "team2", Player1: &player2, Player2: &player4}
+	team1 := Team{Name: "team1", Player1: &Player1, Player2: &Player3}
+	team2 := Team{Name: "team2", Player1: &Player2, Player2: &Player4}
 
-	player1.Team = &team1
-	player2.Team = &team2
-	player3.Team = &team1
-	player4.Team = &team2
+	Player1.Team = &team1
+	Player2.Team = &team2
+	Player3.Team = &team1
+	Player4.Team = &team2
 
 	return &Game{
-		player1: player1,
-		player2: player2,
-		player3: player3,
-		player4: player4,
+		Player1: Player1,
+		Player2: Player2,
+		Player3: Player3,
+		Player4: Player4,
 	}
 }
 
 func (game *Game) StartGameLoop(
 	stateChangeCallback func(g *Game),
-	playerTrumpAssignmentCallback func(p Player, cards []Card) string,
-	playerMoveCallback func(p Player, cards []Card) Card,
+	playerTrumpAssignmentCallback func(player string, cards []Card) string,
+	playerMoveCallback func(player string, cards []Card) Card,
 ) error {
 	// Fresh new game starter.
 	stateChangeCallback(game)
@@ -65,8 +65,8 @@ func (game *Game) StartGameLoop(
 		stateChangeCallback(game)
 
 		trump := playerTrumpAssignmentCallback(
-			round.starter,
-			round.getHand(round.starter).cards,
+			round.starter.Name,
+			round.getHand(round.starter).Cards,
 		)
 
 		round.assignTrump(trump)
@@ -82,7 +82,7 @@ func (game *Game) StartGameLoop(
 			stateChangeCallback(game)
 
 			for p := starter; p.Name != starter.Name; p = *p.leftOpponent {
-				card := playerMoveCallback(p, round.availableCardsForMove(p))
+				card := playerMoveCallback(p.Name, round.availableCardsForMove(p))
 				round.takeMove(p, card)
 
 				// Move taken.
@@ -97,15 +97,15 @@ func (game *Game) StartGameLoop(
 	return nil
 }
 
-func (g Game) currentRound() *Round {
-	if len(g.rounds) == 0 {
+func (g Game) CurrentRound() *Round {
+	if len(g.Rounds) == 0 {
 		return nil
 	}
 
-	curRound := &g.rounds[0]
-	for i := 1; i < len(g.rounds); i++ {
-		if g.rounds[i].number > curRound.number {
-			curRound = &g.rounds[i]
+	curRound := &g.Rounds[0]
+	for i := 1; i < len(g.Rounds); i++ {
+		if g.Rounds[i].number > curRound.number {
+			curRound = &g.Rounds[i]
 		}
 	}
 
@@ -113,14 +113,14 @@ func (g Game) currentRound() *Round {
 }
 
 func (g *Game) startNextRound() (*Round, error) {
-	players := []Player{g.player1, g.player2, g.player3, g.player4}
-	round, err := newRound(players, g.currentRound())
+	players := []Player{g.Player1, g.Player2, g.Player3, g.Player4}
+	round, err := newRound(players, g.CurrentRound())
 
 	if err != nil {
 		return nil, err
 	}
 
-	g.rounds = append(g.rounds, *round)
+	g.Rounds = append(g.Rounds, *round)
 
 	return round, nil
 }
@@ -136,13 +136,13 @@ func (g Game) ToJSON() {
 }
 
 func (g Game) team1() Team {
-	return *g.player1.Team
+	return *g.Player1.Team
 }
 
 func (g Game) team2() Team {
-	return *g.player3.Team
+	return *g.Player3.Team
 }
 
 func (g Game) score() Score {
-	return newScore(g.rounds)
+	return newScore(g.Rounds)
 }

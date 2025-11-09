@@ -3,13 +3,13 @@ package models
 import "errors"
 
 type Card struct {
-	rank    string
-	suit    string
+	Rank    string
+	Suit    string
 	isTrump bool
 }
 
 func isSuitValid(suit string) bool {
-	for _, validSuit := range validSuits {
+	for _, validSuit := range ValidSuits {
 		if suit == validSuit {
 			return true
 		}
@@ -19,7 +19,7 @@ func isSuitValid(suit string) bool {
 }
 
 func isRankValid(rank string) bool {
-	for _, validRank := range validRanks {
+	for _, validRank := range ValidRanks {
 		if rank == validRank {
 			return true
 		}
@@ -30,13 +30,13 @@ func isRankValid(rank string) bool {
 
 func newCard(rank, suit string) (*Card, error) {
 	if !isRankValid(rank) {
-		return nil, errors.New("Invalid rank: " + rank)
+		return nil, errors.New("Invalid Rank: " + rank)
 	}
 	if !isSuitValid(suit) {
-		return nil, errors.New("Invalid suit: " + suit)
+		return nil, errors.New("Invalid Suit: " + suit)
 	}
 
-	card := Card{rank: rank, suit: suit}
+	card := Card{Rank: rank, Suit: suit}
 	if card.isDefaultTrump() {
 		card.isTrump = true
 	}
@@ -45,14 +45,14 @@ func newCard(rank, suit string) (*Card, error) {
 }
 
 func (c Card) isDefaultTrump() bool {
-	return c.rank == SevenRank || c.rank == JackRank
+	return c.Rank == SevenRank || c.Rank == JackRank
 }
 
 func (c Card) level() int {
 	var level int
 
 	if c.isDefaultTrump() {
-		switch c.id() {
+		switch c.ID() {
 		case SevenRank + ClubsSuit:
 			level = 21
 		case SevenRank + SpadesSuit:
@@ -71,7 +71,7 @@ func (c Card) level() int {
 			level = 14
 		}
 	} else if c.isTrump {
-		switch c.rank {
+		switch c.Rank {
 		case SixRank:
 			level = 22
 		case AceRank:
@@ -88,7 +88,7 @@ func (c Card) level() int {
 			level = 8
 		}
 	} else {
-		switch c.rank {
+		switch c.Rank {
 		case AceRank:
 			level = 7
 		case KingRank:
@@ -109,6 +109,6 @@ func (c Card) level() int {
 	return level
 }
 
-func (c Card) id() string {
-	return c.rank + c.suit
+func (c Card) ID() string {
+	return c.Rank + c.Suit
 }
