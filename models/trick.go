@@ -6,13 +6,13 @@ type Trick struct {
 	Moves   []Move
 }
 
-func newFirstTrick(starter Player) *Trick {
-	return &Trick{Number: 1, starter: starter}
+func newFirstTrick(starter Player) Trick {
+	return Trick{Number: 1, starter: starter}
 }
 
 // TODO: Add error is more than 9 tricks started, or curTrick isn't finished.
-func newTrick(curTrick *Trick) *Trick {
-	return &Trick{Number: curTrick.Number + 1, starter: curTrick.winner()}
+func newTrick(curTrick Trick) Trick {
+	return Trick{Number: curTrick.Number + 1, starter: curTrick.Winner()}
 }
 
 // TODO: Add error if more than 4 moves added, or same player added, or same card
@@ -46,7 +46,7 @@ func (t Trick) winMove() Move {
 	return winMove
 }
 
-func (t Trick) winner() Player {
+func (t Trick) Winner() Player {
 	return t.winMove().Player
 }
 
@@ -70,4 +70,8 @@ func (t Trick) hasAnyTrumps() bool {
 	}
 
 	return false
+}
+
+func (t Trick) IsCompleted() bool {
+	return len(t.Moves) == movesInTrickCount
 }

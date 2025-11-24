@@ -25,6 +25,23 @@ func stateChangeCallback(g *models.Game) {
 
 	fmt.Println("Round number: ", round.Number)
 	fmt.Println("Round trump: ", round.Trump)
+	fmt.Println("Tricks: ")
+	for _, trick := range round.Tricks {
+		if !trick.IsCompleted() {
+			continue
+		}
+
+		fmt.Printf("\nNumber: %d\n", trick.Number)
+		for _, move := range trick.Moves {
+			fmt.Printf("\t %s: %s", move.Player.Name, move.Card.ID())
+			if trick.Winner().Name == move.Player.Name {
+				fmt.Println(" -> Winner")
+			} else {
+				fmt.Println()
+			}
+		}
+	}
+
 	fmt.Println("Hands: ")
 	for _, hand := range round.Hands {
 		var cards []string
@@ -53,7 +70,7 @@ func playerTrumpAssignmentCallback(player string, cards []models.Card) string {
 	for {
 		var suit string
 
-		fmt.Printf("Enter trump suit(%s) -> ", player)
+		fmt.Printf("Enter trump suit <%s>:", player)
 		fmt.Scan(&suit)
 
 		for _, validSuit := range models.ValidSuits {
@@ -62,7 +79,7 @@ func playerTrumpAssignmentCallback(player string, cards []models.Card) string {
 			}
 		}
 
-		fmt.Printf("Invalid suit entered(%s)", player)
+		fmt.Printf("Invalid suit entered <%s>", player)
 	}
 }
 
@@ -75,7 +92,7 @@ func playerMoveCallback(player string, cards []models.Card) models.Card {
 			cardIDs = append(cardIDs, card.ID())
 		}
 
-		fmt.Printf("Enter rank and suit(%s) (%s) -> ", player, strings.Join(cardIDs, ","))
+		fmt.Printf("Enter rank and suit (%s) <%s>:", strings.Join(cardIDs, ", "), player)
 		fmt.Scan(&rank, &suit)
 
 		for _, card := range cards {
@@ -84,7 +101,7 @@ func playerMoveCallback(player string, cards []models.Card) models.Card {
 			}
 		}
 
-		fmt.Printf("Invalid rank and suit entered(%s)", player)
+		fmt.Printf("Invalid rank and suit entered <%s>", player)
 	}
 }
 

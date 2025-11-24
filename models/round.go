@@ -9,12 +9,13 @@ import (
 type Round struct {
 	Number  int
 	Hands   []Hand
-	tricks  []Trick
+	Tricks  []Trick
 	Trump   string
 	starter Player
 }
 
 // TODO: Add error if more than max number of rounds started
+// I guess there's no need to return a pointer?
 func newRound(players []Player, curRound *Round) (*Round, error) {
 	newRound := Round{}
 	err := newRound.dealHands(players)
@@ -38,14 +39,14 @@ func newRound(players []Player, curRound *Round) (*Round, error) {
 }
 
 func (r *Round) CurrentTrick() *Trick {
-	if len(r.tricks) == 0 {
+	if len(r.Tricks) == 0 {
 		return nil
 	}
 
-	trick := &r.tricks[0]
-	for i := 1; i < len(r.tricks); i++ {
-		if r.tricks[i].Number > trick.Number {
-			trick = &r.tricks[i]
+	trick := &r.Tricks[0]
+	for i := 1; i < len(r.Tricks); i++ {
+		if r.Tricks[i].Number > trick.Number {
+			trick = &r.Tricks[i]
 		}
 	}
 
@@ -54,17 +55,17 @@ func (r *Round) CurrentTrick() *Trick {
 
 func (r *Round) startNextTrick() *Trick {
 	curTrick := r.CurrentTrick()
-	var trick *Trick
+	var trick Trick
 
 	if curTrick == nil {
 		trick = newFirstTrick(r.starter)
 	} else {
-		trick = newTrick(curTrick)
+		trick = newTrick(*curTrick)
 	}
 
-	r.tricks = append(r.tricks, *trick)
+	r.Tricks = append(r.Tricks, trick)
 
-	return trick
+	return &r.Tricks[len(r.Tricks)-1]
 }
 
 func (r *Round) getHand(player Player) *Hand {

@@ -126,7 +126,7 @@ func (g *Game) startNextRound() (*Round, error) {
 
 	g.Rounds = append(g.Rounds, *round)
 
-	return round, nil
+	return &g.Rounds[len(g.Rounds)-1], nil
 }
 
 // TODO
