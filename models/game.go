@@ -148,5 +148,5 @@ func (g Game) team2() Team {
 }
 
 func (g Game) score() Score {
-	return newScore(g.Rounds)
+	return newScore(g)
 }

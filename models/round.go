@@ -154,9 +154,40 @@ func (r *Round) availableCardsForMove(player Player) []Card {
 	return hand.availableCardsForMove(trick)
 }
 
-func (r *Round) winnerTeam() Team {
-	// TODO
-	return Team{}
+func (r *Round) IsCompleted() bool {
+	if len(r.Tricks) != tricksPerRoundCount {
+		return false
+	}
+
+	for _, trick := range r.Tricks {
+		if !trick.IsCompleted() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (r *Round) winnerTeam() *Team {
+	tricksCount := map[string]int{}
+
+	if !r.IsCompleted() {
+		return nil
+	}
+
+	for _, trick := range r.Tricks {
+		tricksCount[trick.Winner().Team.Name] += 1
+	}
+
+	starterTeam := r.starter.Team
+	opponentTeam := r.starter.leftOpponent.Team
+
+	// Draw is impossible.
+	if tricksCount[starterTeam.Name] > tricksCount[opponentTeam.Name] {
+		return starterTeam
+	} else {
+		return opponentTeam
+	}
 }
 
 func createShuffledDeckOfCards() []Card {
