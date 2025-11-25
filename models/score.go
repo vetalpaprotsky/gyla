@@ -12,7 +12,7 @@ package models
 type Score map[string]int
 
 func newScore(game Game) Score {
-	var score Score
+	score := make(Score)
 
 	score[game.Player1.Team.Name] = 0
 	score[game.Player1.leftOpponent.Team.Name] = 0
