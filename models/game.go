@@ -1,94 +1,73 @@
 package models
 
 type Game struct {
-	Rounds  []Round
-	Player1 Player
-	Player2 Player
-	Player3 Player
-	Player4 Player
+	Rounds   []Round
+	Relation PlayersRelation
 }
 
-func NewGame(p1, p2, p3, p4 string) *Game {
-	Player1 := Player{Name: p1}
-	Player2 := Player{Name: p2}
-	Player3 := Player{Name: p3}
-	Player4 := Player{Name: p4}
-
-	Player1.leftOpponent = &Player2
-	Player1.teammate = &Player3
-	Player1.rightOpponent = &Player4
-
-	Player2.leftOpponent = &Player3
-	Player2.teammate = &Player4
-	Player2.rightOpponent = &Player1
-
-	Player3.leftOpponent = &Player4
-	Player3.teammate = &Player1
-	Player3.rightOpponent = &Player2
-
-	Player4.leftOpponent = &Player1
-	Player4.teammate = &Player2
-	Player4.rightOpponent = &Player3
-
-	team1 := Team{Name: "team1", Player1: &Player1, Player2: &Player3}
-	team2 := Team{Name: "team2", Player1: &Player2, Player2: &Player4}
-
-	Player1.Team = &team1
-	Player2.Team = &team2
-	Player3.Team = &team1
-	Player4.Team = &team2
+func NewGame(t1, p1, p3, t2, p2, p4 string) *Game {
+	team1 := Team(t1)
+	player1 := Player(p1)
+	player3 := Player(p3)
+	team2 := Team(t2)
+	player2 := Player(p2)
+	player4 := Player(p4)
 
 	return &Game{
-		Player1: Player1,
-		Player2: Player2,
-		Player3: Player3,
-		Player4: Player4,
+		Relation: PlayersRelation{
+			Team1:   team1,
+			Player1: player1,
+			Player3: player3,
+			Team2:   team2,
+			Player2: player2,
+			Player4: player4,
+		},
 	}
 }
 
-func (game *Game) StartGameLoop(
+func (g *Game) StartGameLoop(
 	stateChangeCallback func(g *Game),
-	playerTrumpAssignmentCallback func(player string, cards []Card) string,
-	playerMoveCallback func(player string, cards []Card) Card,
+	playerTrumpAssignmentCallback func(p Player, cards []Card) string,
+	playerMoveCallback func(p Player, cards []Card) Card,
 ) error {
 	// Fresh new game starter.
-	stateChangeCallback(game)
+	stateChangeCallback(g)
 
 	for range maxPossibleNumberOfRounds {
-		round, err := game.startNextRound()
+		round, err := g.startNextRound()
 
 		if err != nil {
 			return err
 		}
 
 		// Round starter and cards got dealt.
-		stateChangeCallback(game)
+		stateChangeCallback(g)
 
 		trump := playerTrumpAssignmentCallback(
-			round.starter.Name,
+			round.starter,
 			round.getHand(round.starter).Cards,
 		)
 
 		round.assignTrump(trump)
 
 		// Round trump assigned.
-		stateChangeCallback(game)
+		stateChangeCallback(g)
 
 		for range tricksPerRoundCount {
 			trick := round.startNextTrick()
 			starter := trick.starter
 
 			// New trick started.
-			stateChangeCallback(game)
+			stateChangeCallback(g)
 
-			for p := starter; ; p = *p.leftOpponent {
-				card := playerMoveCallback(p.Name, round.availableCardsForMove(p))
+			for p := starter; ; p = g.Relation.getLeftOpponent(p) {
+				card := playerMoveCallback(p, round.availableCardsForMove(p))
 				round.takeMove(p, card)
 
 				// Move taken.
-				stateChangeCallback(game)
+				stateChangeCallback(g)
 
-				if p.leftOpponent.Name == starter.Name {
+				if g.Relation.getLeftOpponent(p) == starter {
 					break
 				}
 			}
@@ -117,8 +96,7 @@ func (g Game) CurrentRound() *Round {
 }
 
 func (g *Game) startNextRound() (*Round, error) {
-	players := []Player{g.Player1, g.Player2, g.Player3, g.Player4}
-	round, err := newRound(players, g.CurrentRound())
+	round, err := newRound(g.Relation, g.CurrentRound())
 
 	if err != nil {
 		return nil, err
@@ -137,14 +115,6 @@ func NewGameFromJSON() {
 // TODO
 func (g Game) ToJSON() {
 
-}
-
-func (g Game) team1() Team {
-	return *g.Player1.Team
-}
-
-func (g Game) team2() Team {
-	return *g.Player3.Team
 }
 
 func (g Game) score() Score {

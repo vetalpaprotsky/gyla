@@ -7,30 +7,31 @@ import (
 )
 
 type Round struct {
-	Number  int
-	Hands   []Hand
-	Tricks  []Trick
-	Trump   string
-	starter Player
+	Number   int
+	Hands    []Hand
+	Tricks   []Trick
+	Trump    string
+	starter  Player
+	relation PlayersRelation
 }
 
 // TODO: Add error if more than max number of rounds started
 // I guess there's no need to return a pointer?
-func newRound(players []Player, curRound *Round) (*Round, error) {
-	newRound := Round{}
-	err := newRound.dealHands(players)
+func newRound(pr PlayersRelation, curRound *Round) (*Round, error) {
+	newRound := Round{relation: pr}
+	err := newRound.dealHands()
 	if err != nil {
 		return nil, err
 	}
 
 	if curRound == nil {
-		newRound.starter = *newRound.findPlayerWithNineOfDiamonds()
+		newRound.starter = newRound.findPlayerWithNineOfDiamonds()
 		newRound.Number = 1
 	} else {
-		if curRound.winnerTeam().Name == curRound.starter.Name {
+		if curRound.winnerTeam() == curRound.starterTeam() {
 			newRound.starter = curRound.starter
 		} else {
-			newRound.starter = *curRound.starter.leftOpponent
+			newRound.starter = curRound.starterLeftOpponent()
 		}
 		newRound.Number = curRound.Number + 1
 	}
@@ -70,7 +71,7 @@ func (r *Round) startNextTrick() *Trick {
 
 func (r *Round) getHand(player Player) *Hand {
 	for i := 0; i < len(r.Hands); i++ {
-		if r.Hands[i].Player.Name == player.Name {
+		if r.Hands[i].Player == player {
 			return &r.Hands[i]
 		}
 	}
@@ -98,23 +99,15 @@ func (r *Round) assignTrump(suit string) error {
 	return nil
 }
 
-func (r *Round) dealHands(players []Player) error {
-	if len(players) != handsCount {
-		errorMsg := fmt.Sprintf(
-			"Number of players must be %d, not %d",
-			handsCount,
-			len(players),
-		)
-		return errors.New(errorMsg)
-	}
-
+func (r *Round) dealHands() error {
 	if len(r.Hands) > 0 {
 		return errors.New("Hands have been dealt already")
 	}
 
+	players := r.relation.allPlayers()
 	deck := createShuffledDeckOfCards()
-	r.Hands = make([]Hand, handsCount)
-	for i := range handsCount {
+	r.Hands = make([]Hand, playersCount)
+	for i := range players {
 		start := i * cardsInHandCount
 		end := start + cardsInHandCount
 		r.Hands[i] = Hand{Player: players[i], Cards: deck[start:end]}
@@ -123,7 +116,7 @@ func (r *Round) dealHands(players []Player) error {
 	return nil
 }
 
-func (r *Round) findPlayerWithNineOfDiamonds() *Player {
+func (r *Round) findPlayerWithNineOfDiamonds() Player {
 	for i := 0; i < len(r.Hands); i++ {
 		hand := r.Hands[i]
 
@@ -131,13 +124,13 @@ func (r *Round) findPlayerWithNineOfDiamonds() *Player {
 			card := hand.Cards[j]
 
 			if card.Rank == NineRank && card.Suit == DiamondsSuit {
-				return &hand.Player
+				return hand.Player
 			}
 		}
 	}
 
 	// Not expected
-	return nil
+	return Player("")
 }
 
 // TODO: Check for errors and return them if needed.
@@ -168,26 +161,38 @@ func (r *Round) IsCompleted() bool {
 	return true
 }
 
-func (r *Round) winnerTeam() *Team {
-	tricksCount := map[string]int{}
+func (r *Round) winnerTeam() Team {
+	tricksCount := map[Team]int{}
 
 	if !r.IsCompleted() {
-		return nil
+		return Team("")
 	}
 
 	for _, trick := range r.Tricks {
-		tricksCount[trick.Winner().Team.Name] += 1
+		tricksCount[r.relation.getTeam(trick.Winner())] += 1
 	}
 
-	starterTeam := r.starter.Team
-	opponentTeam := r.starter.leftOpponent.Team
+	starterTeam := r.starterTeam()
+	opponentTeam := r.starterOpponentTeam()
 
 	// Draw is impossible.
-	if tricksCount[starterTeam.Name] > tricksCount[opponentTeam.Name] {
+	if tricksCount[starterTeam] > tricksCount[opponentTeam] {
 		return starterTeam
 	} else {
 		return opponentTeam
 	}
+}
+
+func (r *Round) starterTeam() Team {
+	return r.relation.getTeam(r.starter)
+}
+
+func (r *Round) starterOpponentTeam() Team {
+	return r.relation.getOpponentTeam(r.starter)
+}
+
+func (r *Round) starterLeftOpponent() Player {
+	return r.relation.getLeftOpponent(r.starter)
 }
 
 func createShuffledDeckOfCards() []Card {

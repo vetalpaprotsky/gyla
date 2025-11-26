@@ -1,31 +1,31 @@
 package models
 
-// TODO: Use PlayersRelation in Game to set team1 and team2 and calculate scores.
+// TODO: This might be a better approach?
 // type Score struct {
 // 	team1  Team
 // 	score1 int
-
+//
 // 	team2  Team
 // 	score2 int
 // }
 
-type Score map[string]int
+type Score map[Team]int
 
 func newScore(game Game) Score {
 	score := make(Score)
 
-	score[game.Player1.Team.Name] = 0
-	score[game.Player1.leftOpponent.Team.Name] = 0
+	score[game.Relation.Team1] = 0
+	score[game.Relation.Team2] = 0
 
 	for _, round := range game.Rounds {
 		winnerTeam := round.winnerTeam()
 
-		if winnerTeam == nil {
+		if winnerTeam == Team("") {
 			continue
 		}
 
-		if winnerTeam.Name == round.starter.Team.Name {
-			score[winnerTeam.Name] += 12
+		if winnerTeam == game.Relation.getTeam(round.starter) {
+			score[winnerTeam] += 12
 		}
 	}
 
@@ -42,9 +42,8 @@ func (s Score) isGameCompleted() bool {
 	return false
 }
 
-func (s Score) winnerTeam() string {
-	// var team Team
-	var team string
+func (s Score) winnerTeam() Team {
+	var team Team
 	var points int
 
 	for k, v := range s {

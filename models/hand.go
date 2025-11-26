@@ -59,7 +59,7 @@ func (h *Hand) takeMove(card Card) error {
 	// was passed to the function. It's not expected. You can't take a move with
 	// a card that you don't have.
 	if len(newCards) == len(h.Cards) {
-		return fmt.Errorf("Player %s doesn't have card %s", h.Player.Name, card.ID())
+		return fmt.Errorf("Player %s doesn't have card %s", h.Player, card.ID())
 	}
 
 	h.Cards = newCards

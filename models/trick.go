@@ -53,7 +53,7 @@ func (t Trick) Winner() Player {
 func (t Trick) firstMove() *Move {
 	for i := 0; i < len(t.Moves); i++ {
 		move := &t.Moves[i]
-		if move.Player.Name == t.starter.Name {
+		if move.Player == t.starter {
 			return move
 		}
 	}

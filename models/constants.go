@@ -42,7 +42,6 @@ const suitsCount = 4
 const ranksCount = 9
 const cardsCount = 36
 const playersCount = 4
-const handsCount = playersCount
 const movesInTrickCount = playersCount
 const cardsInHandCount = 9
 const tricksPerRoundCount = cardsInHandCount
