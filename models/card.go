@@ -112,3 +112,30 @@ func (c Card) level() int {
 func (c Card) ID() string {
 	return c.Rank + c.Suit
 }
+
+func (c Card) TuiID() string {
+	var red = "\033[31m"
+	var black = "\033[30m"
+	var reset = "\033[0m"
+	var color string
+
+	if c.Suit == HeartsSuit || c.Suit == DiamondsSuit {
+		color = red
+	} else {
+		color = black
+	}
+
+	var suitSymbol string
+	switch c.Suit {
+	case ClubsSuit:
+		suitSymbol = "♣"
+	case SpadesSuit:
+		suitSymbol = "♠"
+	case HeartsSuit:
+		suitSymbol = "♥"
+	case DiamondsSuit:
+		suitSymbol = "♦"
+	}
+
+	return color + c.Rank + suitSymbol + reset
+}

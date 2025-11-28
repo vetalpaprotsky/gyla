@@ -1,31 +1,34 @@
 package models
 
-// TODO: This might be a better approach?
-// type Score struct {
-// 	team1  Team
-// 	score1 int
-//
-// 	team2  Team
-// 	score2 int
-// }
+type Score struct {
+	Team1   Team
+	Points1 int
+	Team2   Team
+	Points2 int
+}
 
-type Score map[Team]int
+func newScore(g Game) Score {
+	score := Score{
+		Team1: g.Relation.Team1,
+		Team2: g.Relation.Team2,
+	}
 
-func newScore(game Game) Score {
-	score := make(Score)
-
-	score[game.Relation.Team1] = 0
-	score[game.Relation.Team2] = 0
-
-	for _, round := range game.Rounds {
+	for _, round := range g.Rounds {
 		winnerTeam := round.winnerTeam()
 
 		if winnerTeam == Team("") {
 			continue
 		}
 
-		if winnerTeam == game.Relation.getTeam(round.starter) {
-			score[winnerTeam] += 12
+		pointsToAdd := 6
+		if winnerTeam != round.starterTeam() {
+			pointsToAdd = 12
+		}
+
+		if winnerTeam == score.Team1 {
+			score.Points1 += pointsToAdd
+		} else {
+			score.Points2 += pointsToAdd
 		}
 	}
 
@@ -33,25 +36,17 @@ func newScore(game Game) Score {
 }
 
 func (s Score) isGameCompleted() bool {
-	for _, points := range s {
-		if points >= 60 {
-			return true
-		}
-	}
-
-	return false
+	return s.Points1 >= 60 || s.Points2 >= 60
 }
 
 func (s Score) winnerTeam() Team {
-	var team Team
-	var points int
-
-	for k, v := range s {
-		if v > points {
-			team = k
-			points = v
-		}
+	if !s.isGameCompleted() {
+		return Team("")
 	}
 
-	return team
+	if s.Points1 > s.Points2 {
+		return s.Team1
+	} else {
+		return s.Team2
+	}
 }

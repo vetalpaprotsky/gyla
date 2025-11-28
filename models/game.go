@@ -25,6 +25,16 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) *Game {
 	}
 }
 
+// TODO: We might want to add more callbacks to make things easier for the
+// client to understand what happed. Things like:
+// 1. Move take.
+// 2. Round started.
+// 3. Trick completed.
+// 4. Game completed.
+// 5. ...
+//
+// That way client won't need to dig in the game state to understand
+// what happened. But, let's see. For now let's keep things as they are.
 func (g *Game) StartGameLoop(
 	stateChangeCallback func(g *Game),
 	playerTrumpAssignmentCallback func(p Player, cards []Card) string,
@@ -73,14 +83,19 @@ func (g *Game) StartGameLoop(
 			}
 		}
 
-		// TODO: End loop if there's a winner team. That can be checked
-		// with a help of Score struct.
+		if g.Score().isGameCompleted() {
+			// Game completed.
+			stateChangeCallback(g)
+			return nil
+		}
 	}
 
+	// Game completed. Max possible number of rounds played.
+	stateChangeCallback(g)
 	return nil
 }
 
-func (g Game) CurrentRound() *Round {
+func (g *Game) CurrentRound() *Round {
 	if len(g.Rounds) == 0 {
 		return nil
 	}
@@ -107,16 +122,6 @@ func (g *Game) startNextRound() (*Round, error) {
 	return &g.Rounds[len(g.Rounds)-1], nil
 }
 
-// TODO
-func NewGameFromJSON() {
-
-}
-
-// TODO
-func (g Game) ToJSON() {
-
-}
-
-func (g Game) score() Score {
-	return newScore(g)
+func (g *Game) Score() Score {
+	return newScore(*g)
 }
