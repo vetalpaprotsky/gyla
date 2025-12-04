@@ -1,32 +1,32 @@
 package models
 
 const (
-	ClubsSuit    = "C"
-	SpadesSuit   = "S"
-	HeartsSuit   = "H"
-	DiamondsSuit = "D"
+	ClubsSuit    = Suit("C")
+	SpadesSuit   = Suit("S")
+	HeartsSuit   = Suit("H")
+	DiamondsSuit = Suit("D")
 )
 
 const (
-	SixRank   = "6"
-	SevenRank = "7"
-	EightRank = "8"
-	NineRank  = "9"
-	TenRank   = "10"
-	JackRank  = "J"
-	QueenRank = "Q"
-	KingRank  = "K"
-	AceRank   = "A"
+	SixRank   = Rank("6")
+	SevenRank = Rank("7")
+	EightRank = Rank("8")
+	NineRank  = Rank("9")
+	TenRank   = Rank("10")
+	JackRank  = Rank("J")
+	QueenRank = Rank("Q")
+	KingRank  = Rank("K")
+	AceRank   = Rank("A")
 )
 
-var ValidSuits = [suitsCount]string{
+var ValidSuits = [suitsCount]Suit{
 	ClubsSuit,
 	SpadesSuit,
 	HeartsSuit,
 	DiamondsSuit,
 }
 
-var ValidRanks = [ranksCount]string{
+var ValidRanks = [ranksCount]Rank{
 	SixRank,
 	SevenRank,
 	EightRank,

@@ -7,6 +7,8 @@ type Score struct {
 	Points2 int
 }
 
+// TODO: When loser team has no tricks, or has one trick, the number of added
+// points must be different.
 func newScore(g Game) Score {
 	score := Score{
 		Team1: g.Relation.Team1,

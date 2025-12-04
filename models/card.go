@@ -1,76 +1,66 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type Card struct {
-	Rank    string
-	Suit    string
-	isTrump bool
+	Rank    Rank
+	Suit    Suit
+	IsTrump bool
 }
 
-func isSuitValid(suit string) bool {
-	for _, validSuit := range ValidSuits {
-		if suit == validSuit {
-			return true
-		}
+func newCard(rank Rank, suit Suit) (Card, error) {
+	if !rank.IsValid() {
+		return Card{}, errors.New("Invalid Rank: " + string(rank))
 	}
-
-	return false
-}
-
-func isRankValid(rank string) bool {
-	for _, validRank := range ValidRanks {
-		if rank == validRank {
-			return true
-		}
-	}
-
-	return false
-}
-
-func newCard(rank, suit string) (*Card, error) {
-	if !isRankValid(rank) {
-		return nil, errors.New("Invalid Rank: " + rank)
-	}
-	if !isSuitValid(suit) {
-		return nil, errors.New("Invalid Suit: " + suit)
+	if !suit.IsValid() {
+		return Card{}, errors.New("Invalid Suit: " + string(suit))
 	}
 
 	card := Card{Rank: rank, Suit: suit}
 	if card.isDefaultTrump() {
-		card.isTrump = true
+		card.IsTrump = true
 	}
 
-	return &card, nil
+	return card, nil
+}
+
+func NewCardFromCardID(id string) (Card, error) {
+	rank := Rank(strings.ToUpper(id[:len(id)-1]))
+	suit := Suit(strings.ToUpper(id[len(id)-1:]))
+
+	return newCard(rank, suit)
 }
 
 func (c Card) isDefaultTrump() bool {
 	return c.Rank == SevenRank || c.Rank == JackRank
 }
 
-func (c Card) level() int {
+func (c Card) Level() int {
 	var level int
 
 	if c.isDefaultTrump() {
 		switch c.ID() {
-		case SevenRank + ClubsSuit:
+		case string(SevenRank) + string(ClubsSuit):
 			level = 21
-		case SevenRank + SpadesSuit:
+		case string(SevenRank) + string(SpadesSuit):
 			level = 20
-		case SevenRank + HeartsSuit:
+		case string(SevenRank) + string(HeartsSuit):
 			level = 19
-		case SevenRank + DiamondsSuit:
+		case string(SevenRank) + string(DiamondsSuit):
 			level = 18
-		case JackRank + ClubsSuit:
+		case string(JackRank) + string(ClubsSuit):
 			level = 17
-		case JackRank + SpadesSuit:
+		case string(JackRank) + string(SpadesSuit):
 			level = 16
-		case JackRank + HeartsSuit:
+		case string(JackRank) + string(HeartsSuit):
 			level = 15
-		case JackRank + DiamondsSuit:
+		case string(JackRank) + string(DiamondsSuit):
 			level = 14
 		}
-	} else if c.isTrump {
+	} else if c.IsTrump {
 		switch c.Rank {
 		case SixRank:
 			level = 22
@@ -110,32 +100,5 @@ func (c Card) level() int {
 }
 
 func (c Card) ID() string {
-	return c.Rank + c.Suit
-}
-
-func (c Card) TuiID() string {
-	var red = "\033[31m"
-	var black = "\033[30m"
-	var reset = "\033[0m"
-	var color string
-
-	if c.Suit == HeartsSuit || c.Suit == DiamondsSuit {
-		color = red
-	} else {
-		color = black
-	}
-
-	var suitSymbol string
-	switch c.Suit {
-	case ClubsSuit:
-		suitSymbol = "♣"
-	case SpadesSuit:
-		suitSymbol = "♠"
-	case HeartsSuit:
-		suitSymbol = "♥"
-	case DiamondsSuit:
-		suitSymbol = "♦"
-	}
-
-	return color + c.Rank + suitSymbol + reset
+	return string(c.Rank) + string(c.Suit)
 }

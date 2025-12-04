@@ -37,7 +37,7 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) *Game {
 // what happened. But, let's see. For now let's keep things as they are.
 func (g *Game) StartGameLoop(
 	stateChangeCallback func(g *Game),
-	playerTrumpAssignmentCallback func(p Player, cards []Card) string,
+	playerTrumpAssignmentCallback func(p Player, cards []Card) Suit,
 	playerMoveCallback func(p Player, cards []Card) Card,
 ) error {
 	// Fresh new game starter.

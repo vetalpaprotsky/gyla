@@ -10,7 +10,7 @@ type Round struct {
 	Number   int
 	Hands    []Hand
 	Tricks   []Trick
-	Trump    string
+	Trump    Suit
 	starter  Player
 	relation PlayersRelation
 }
@@ -80,7 +80,11 @@ func (r *Round) getHand(player Player) *Hand {
 	return nil
 }
 
-func (r *Round) assignTrump(suit string) error {
+func (r *Round) TricksPerTeam() TricksPerTeam {
+	return newTricksPerTeam(*r)
+}
+
+func (r *Round) assignTrump(suit Suit) error {
 	if r.Trump != "" {
 		errorMsg := fmt.Sprintf(
 			"Can't assign %s Trump, it's already assigned to %s",
@@ -204,7 +208,7 @@ func createShuffledDeckOfCards() []Card {
 		for j := range suitsCount {
 			randInx := shuffledIndexes[k]
 			card, _ := newCard(ValidRanks[i], ValidSuits[j]) // safe to ignore error
-			deck[randInx] = *card
+			deck[randInx] = card
 			k++
 		}
 	}

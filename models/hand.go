@@ -9,10 +9,11 @@ type Hand struct {
 	Cards  []Card
 }
 
-func (h *Hand) assignTrump(suit string) {
+// TODO: I don't think I need a pointer here.
+func (h *Hand) assignTrump(suit Suit) {
 	for i, c := range h.Cards {
 		if c.Suit == suit {
-			h.Cards[i].isTrump = true
+			h.Cards[i].IsTrump = true
 		}
 	}
 }
@@ -27,7 +28,7 @@ func (h *Hand) availableCardsForMove(trick Trick) []Card {
 	// - You have to go with trump as well
 	// - If you don't have trumps then any card works
 	trickFirstCard := trick.Moves[0].Card
-	if trickFirstCard.isTrump {
+	if trickFirstCard.IsTrump {
 		if len(h.trumps()) > 0 {
 			return h.trumps()
 		} else {
@@ -72,7 +73,7 @@ func (h *Hand) trumps() []Card {
 	trumps := make([]Card, 0, 2)
 
 	for _, c := range h.Cards {
-		if c.isTrump {
+		if c.IsTrump {
 			trumps = append(trumps, c)
 		}
 	}
@@ -80,12 +81,12 @@ func (h *Hand) trumps() []Card {
 	return trumps
 }
 
-func (h *Hand) plainSuitCards(suit string) []Card {
+func (h *Hand) plainSuitCards(suit Suit) []Card {
 	// capacity = 2, just a simple guess
 	plainCards := make([]Card, 0, 2)
 
 	for _, c := range h.Cards {
-		if !c.isTrump && c.Suit == suit {
+		if !c.IsTrump && c.Suit == suit {
 			plainCards = append(plainCards, c)
 		}
 	}

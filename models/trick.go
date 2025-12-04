@@ -29,7 +29,7 @@ func (t Trick) winMove() Move {
 
 	if t.hasAnyTrumps() {
 		for _, move := range t.Moves {
-			if move.Card.level() > winMove.Card.level() {
+			if move.Card.Level() > winMove.Card.Level() {
 				winMove = move
 			}
 		}
@@ -37,7 +37,7 @@ func (t Trick) winMove() Move {
 		leadingSuit := firstMove.Card.Suit
 
 		for _, move := range t.Moves {
-			if move.Card.Suit == leadingSuit && move.Card.level() > winMove.Card.level() {
+			if move.Card.Suit == leadingSuit && move.Card.Level() > winMove.Card.Level() {
 				winMove = move
 			}
 		}
@@ -64,7 +64,7 @@ func (t Trick) firstMove() *Move {
 
 func (t Trick) hasAnyTrumps() bool {
 	for _, move := range t.Moves {
-		if move.Card.isTrump {
+		if move.Card.IsTrump {
 			return true
 		}
 	}

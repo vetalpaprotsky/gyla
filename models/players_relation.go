@@ -1,5 +1,8 @@
 package models
 
+type Player string
+type Team string
+
 type PlayersRelation struct {
 	Team1   Team
 	Player1 Player
