@@ -95,29 +95,36 @@ func (g *Game) StartGameLoop(
 	return nil
 }
 
-func (g *Game) CurrentRound() *Round {
+func (g *Game) CurrentRound() (Round, bool) {
 	if len(g.Rounds) == 0 {
-		return nil
+		return Round{}, false
 	}
 
-	curRound := &g.Rounds[0]
+	curRound := g.Rounds[0]
 	for i := 1; i < len(g.Rounds); i++ {
 		if g.Rounds[i].Number > curRound.Number {
-			curRound = &g.Rounds[i]
+			curRound = g.Rounds[i]
 		}
 	}
 
-	return curRound
+	return curRound, true
 }
 
 func (g *Game) startNextRound() (*Round, error) {
-	round, err := newRound(g.Relation, g.CurrentRound())
+	var round Round
+	var err error
+
+	if curRound, ok := g.CurrentRound(); ok {
+		round, err = newRound(curRound)
+	} else {
+		round, err = newFirstRound(g.Relation)
+	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	g.Rounds = append(g.Rounds, *round)
+	g.Rounds = append(g.Rounds, round)
 
 	return &g.Rounds[len(g.Rounds)-1], nil
 }

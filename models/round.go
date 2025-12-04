@@ -15,28 +15,44 @@ type Round struct {
 	relation PlayersRelation
 }
 
-// TODO: Add error if more than max number of rounds started
-// I guess there's no need to return a pointer?
-func newRound(pr PlayersRelation, curRound *Round) (*Round, error) {
-	newRound := Round{relation: pr}
-	err := newRound.dealHands()
+func newRound(curRound Round) (Round, error) {
+	if curRound.Number >= maxPossibleNumberOfRounds {
+		msg := "Max possible number of rounds already started."
+		return Round{}, errors.New(msg)
+	}
+
+	if !curRound.IsCompleted() {
+		msg := "Current round isn't completed. New round can't be started."
+		return Round{}, errors.New(msg)
+	}
+
+	round := Round{relation: curRound.relation, Number: curRound.Number + 1}
+
+	err := round.dealHands()
 	if err != nil {
-		return nil, err
+		return Round{}, err
 	}
 
-	if curRound == nil {
-		newRound.starter = newRound.findPlayerWithNineOfDiamonds()
-		newRound.Number = 1
+	if curRound.winnerTeam() == curRound.starterTeam() {
+		round.starter = curRound.starter
 	} else {
-		if curRound.winnerTeam() == curRound.starterTeam() {
-			newRound.starter = curRound.starter
-		} else {
-			newRound.starter = curRound.starterLeftOpponent()
-		}
-		newRound.Number = curRound.Number + 1
+		round.starter = curRound.starterLeftOpponent()
 	}
 
-	return &newRound, nil
+	return round, nil
+}
+
+func newFirstRound(pr PlayersRelation) (Round, error) {
+	round := Round{relation: pr, Number: 1}
+
+	err := round.dealHands()
+	if err != nil {
+		return Round{}, err
+	}
+
+	round.starter = round.findPlayerWithNineOfDiamonds()
+
+	return round, nil
 }
 
 func (r *Round) CurrentTrick() *Trick {

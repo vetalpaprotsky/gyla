@@ -18,8 +18,8 @@ func stateChangeCallback(g *models.Game) {
 	fmt.Printf("\t%s: %s, %s\n", g.Relation.Team1, g.Relation.Player1, g.Relation.Player3)
 	fmt.Printf("\t%s: %s, %s\n", g.Relation.Team2, g.Relation.Player2, g.Relation.Player4)
 
-	round := g.CurrentRound()
-	if round == nil {
+	round, roundOk := g.CurrentRound()
+	if !roundOk {
 		return
 	}
 
@@ -113,16 +113,13 @@ func playerMoveCallback(p models.Player, cards []models.Card) models.Card {
 
 func main() {
 	game := models.NewGame("Old", "Homer", "Ned", "Young", "Bart", "Lisa")
-
-	// TODO: Check for errors
-	game.StartGameLoop(
+	err := game.StartGameLoop(
 		stateChangeCallback,
 		playerTrumpAssignmentCallback,
 		playerMoveCallback,
 	)
 
-	// How to restore a game at any point if let's same something goes wrong?
-	// We can save game after each move, but we need to create some "restore"
-	// algorithm, which checks store unfinished state of game and knows how to
-	// continue it.
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
 }
