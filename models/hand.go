@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -9,7 +10,6 @@ type Hand struct {
 	Cards  []Card
 }
 
-// TODO: I don't think I need a pointer here.
 func (h *Hand) assignTrump(suit Suit) {
 	for i, c := range h.Cards {
 		if c.Suit == suit {
@@ -47,25 +47,50 @@ func (h *Hand) availableCardsForMove(trick Trick) []Card {
 	}
 }
 
-func (h *Hand) makeMove(card Card) error {
-	newCards := make([]Card, 0, len(h.Cards))
+func (h *Hand) makeMove(card Card, trick *Trick) error {
+	if !h.canMakeMove(card, *trick) {
+		msg := fmt.Sprintf(
+			"Player %s can't make a move with %s card", h.Player, card,
+		)
+		return errors.New(msg)
+	}
 
+	newCards, isCardRemoved := h.removeCard(card)
+	if !isCardRemoved {
+		msg := fmt.Sprintf(
+			"Count not remove card %s from player %s hand", card, h.Player,
+		)
+		return errors.New(msg)
+	}
+
+	if err := trick.addMove(h.Player, card); err != nil {
+		return err
+	}
+
+	// This must be the last step, since at this point we know that move can be
+	// made for sure.
+	h.Cards = newCards
+
+	return nil
+}
+
+func (h *Hand) removeCard(card Card) ([]Card, bool) {
+	if !isCardInSlice(card, h.Cards) {
+		return []Card{}, false
+	}
+
+	newCards := make([]Card, 0, len(h.Cards)-1)
 	for _, c := range h.Cards {
 		if c != card {
 			newCards = append(newCards, c)
 		}
 	}
 
-	// This means that none of the Cards in the hand match the card that
-	// was passed to the function. It's not expected. You can't take a move with
-	// a card that you don't have.
-	if len(newCards) == len(h.Cards) {
-		return fmt.Errorf("Player %s doesn't have card %s", h.Player, card.ID())
-	}
+	return newCards, true
+}
 
-	h.Cards = newCards
-
-	return nil
+func (h *Hand) canMakeMove(card Card, trick Trick) bool {
+	return isCardInSlice(card, h.availableCardsForMove(trick))
 }
 
 func (h *Hand) trumps() []Card {
@@ -92,4 +117,14 @@ func (h *Hand) plainSuitCards(suit Suit) []Card {
 	}
 
 	return plainCards
+}
+
+func isCardInSlice(card Card, cards []Card) bool {
+	for _, c := range cards {
+		if c == card {
+			return true
+		}
+	}
+
+	return false
 }

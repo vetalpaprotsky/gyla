@@ -27,9 +27,9 @@ func newCard(rank Rank, suit Suit) (Card, error) {
 	return card, nil
 }
 
-func NewCardFromCardID(id string) (Card, error) {
-	rank := Rank(strings.ToUpper(id[:len(id)-1]))
-	suit := Suit(strings.ToUpper(id[len(id)-1:]))
+func NewCardFromRankAndSuit(rankAndSuit string) (Card, error) {
+	rank := Rank(strings.ToUpper(rankAndSuit[:len(rankAndSuit)-1]))
+	suit := Suit(strings.ToUpper(rankAndSuit[len(rankAndSuit)-1:]))
 
 	return newCard(rank, suit)
 }
@@ -42,7 +42,7 @@ func (c Card) Level() int {
 	var level int
 
 	if c.isDefaultTrump() {
-		switch c.ID() {
+		switch c.RankAndSuit() {
 		case string(SevenRank) + string(ClubsSuit):
 			level = 21
 		case string(SevenRank) + string(SpadesSuit):
@@ -99,6 +99,18 @@ func (c Card) Level() int {
 	return level
 }
 
-func (c Card) ID() string {
+func (c Card) RankAndSuit() string {
 	return string(c.Rank) + string(c.Suit)
+}
+
+func (c Card) String() string {
+	var suffix string
+
+	if c.IsTrump {
+		suffix = "-T"
+	} else {
+		suffix = "-P"
+	}
+
+	return c.RankAndSuit() + suffix
 }

@@ -88,7 +88,9 @@ func (g *Game) StartGameLoop(
 			}
 		}
 
-		if g.Score().isGameCompleted() {
+		score := g.Score()
+
+		if score.isGameCompleted() {
 			// Game completed.
 			stateChangeCallback(g)
 			return nil

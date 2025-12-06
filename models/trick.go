@@ -21,23 +21,29 @@ func newTrick(curTrick Trick) (Trick, error) {
 		return Trick{}, errors.New(msg)
 	}
 
-	return Trick{Number: curTrick.Number + 1, starter: curTrick.Winner()}, nil
+	winner, winnerOk := curTrick.Winner()
+	if !winnerOk {
+		msg := "Current trick winner isn't determined. Can't start a new one."
+		return Trick{}, errors.New(msg)
+	}
+
+	return Trick{Number: curTrick.Number + 1, starter: winner}, nil
 }
 
 func (t *Trick) addMove(player Player, card Card) error {
-	if len(t.Moves) >= movesPerTrickCount {
-		msg := "Max possible moves per trick added. Can't add a new one."
+	if t.IsCompleted() {
+		msg := "Trick is completed. Can't add a new card to it."
 		return errors.New(msg)
 	}
 
 	for _, m := range t.Moves {
 		if m.Player == player {
-			msg := fmt.Sprintf("Player %s already made a move in a trick", player)
+			msg := fmt.Sprintf("Player <%s> already made a move in a trick", player)
 			return errors.New(msg)
 		}
 
-		if m.Card.ID() == card.ID() {
-			msg := fmt.Sprintf("Card %s already in a trick", card.ID())
+		if m.Card == card {
+			msg := fmt.Sprintf("Card <%s> already in a trick", card)
 			return errors.New(msg)
 		}
 	}
@@ -47,9 +53,14 @@ func (t *Trick) addMove(player Player, card Card) error {
 	return nil
 }
 
-// TODO: use ok idiom if trick isn't completed
-func (t Trick) winMove() Move {
-	firstMove := *t.firstMove()
+func (t Trick) winMove() (Move, bool) {
+	if len(t.Moves) != tricksPerRoundCount {
+		return Move{}, false
+	}
+
+	// It's safe to skip bool value in this case, since we're sure that
+	// the first move is present in the trick at this point.
+	firstMove, _ := t.firstMove()
 	winMove := firstMove
 
 	if t.hasAnyTrumps() {
@@ -68,25 +79,34 @@ func (t Trick) winMove() Move {
 		}
 	}
 
-	return winMove
+	return winMove, true
 }
 
-// TODO: comma ok idiom
-func (t Trick) Winner() Player {
-	return t.winMove().Player
+func (t Trick) Winner() (Player, bool) {
+	if move, ok := t.winMove(); ok {
+		return move.Player, true
+	}
+
+	return Player(""), false
 }
 
-// TODO: Use comma ok idiom, don't return a pointer.
-func (t Trick) firstMove() *Move {
+func (t Trick) IsCompleted() bool {
+	if _, ok := t.winMove(); ok {
+		return true
+	}
+
+	return false
+}
+
+func (t Trick) firstMove() (Move, bool) {
 	for i := 0; i < len(t.Moves); i++ {
-		move := &t.Moves[i]
+		move := t.Moves[i]
 		if move.Player == t.starter {
-			return move
+			return move, true
 		}
 	}
 
-	// Not expected
-	return nil
+	return Move{}, false
 }
 
 func (t Trick) hasAnyTrumps() bool {
@@ -97,8 +117,4 @@ func (t Trick) hasAnyTrumps() bool {
 	}
 
 	return false
-}
-
-func (t Trick) IsCompleted() bool {
-	return len(t.Moves) == movesPerTrickCount
 }

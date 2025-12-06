@@ -15,13 +15,12 @@ func newTricksPerTeam(r Round) TricksPerTeam {
 	}
 
 	for _, t := range r.Tricks {
-		if !t.IsCompleted() {
+		winner, winnerOk := t.Winner()
+		if !winnerOk {
 			continue
 		}
 
-		winTeam := relation.getTeam(t.Winner())
-
-		if winTeam == relation.Team1 {
+		if relation.getTeam(winner) == relation.Team1 {
 			result.Tricks1 += 1
 		} else {
 			result.Tricks2 += 1

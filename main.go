@@ -35,14 +35,15 @@ func stateChangeCallback(g *models.Game) {
 	fmt.Println("Round number:", round.Number)
 	fmt.Println("Tricks:")
 	for _, trick := range round.Tricks {
-		if !trick.IsCompleted() {
+		winner, winnerOk := trick.Winner()
+		if !winnerOk {
 			continue
 		}
 
 		fmt.Printf("\tNumber: %d\n", trick.Number)
 		for _, move := range trick.Moves {
 			fmt.Printf("\t%s: %s", move.Player, tui.Card(move.Card))
-			if trick.Winner() == move.Player {
+			if winner == move.Player {
 				fmt.Println(" -> Winner")
 			} else {
 				fmt.Println()
@@ -65,7 +66,7 @@ func stateChangeCallback(g *models.Game) {
 	}
 
 	fmt.Println("Trick number:", round.CurrentTrick().Number)
-	fmt.Println("Round trump:", round.Trump.Tui())
+	fmt.Println("Round trump:", tui.Suit(round.Trump))
 	fmt.Println("Moves:")
 	for _, move := range round.CurrentTrick().Moves {
 		fmt.Printf("\t%s: %s\n", move.Player, tui.Card(move.Card))
@@ -90,11 +91,11 @@ func playerTrumpAssignmentCallback(p models.Player, cards []models.Card) models.
 
 func playerMoveCallback(p models.Player, cards []models.Card) models.Card {
 	for {
-		var cardID string
+		var rankAndSuit string
 
 		fmt.Printf("Enter rank and suit (%s) <%s>:", tui.Cards(cards), p)
-		fmt.Scan(&cardID)
-		card, err := models.NewCardFromCardID(cardID)
+		fmt.Scan(&rankAndSuit)
+		card, err := models.NewCardFromRankAndSuit(rankAndSuit)
 
 		if err != nil {
 			fmt.Println(err.Error())
@@ -102,7 +103,7 @@ func playerMoveCallback(p models.Player, cards []models.Card) models.Card {
 		}
 
 		for _, c := range cards {
-			if card.ID() == c.ID() {
+			if c.Rank == card.Rank && c.Suit == card.Suit {
 				return c
 			}
 		}

@@ -16,18 +16,17 @@ func newScore(g Game) Score {
 	}
 
 	for _, round := range g.Rounds {
-		winnerTeam := round.winnerTeam()
-
-		if winnerTeam == Team("") {
+		winTeam, winTeamOk := round.winTeam()
+		if !winTeamOk {
 			continue
 		}
 
 		pointsToAdd := 6
-		if winnerTeam != round.starterTeam() {
+		if winTeam != round.starterTeam() {
 			pointsToAdd = 12
 		}
 
-		if winnerTeam == score.Team1 {
+		if winTeam == score.Team1 {
 			score.Points1 += pointsToAdd
 		} else {
 			score.Points2 += pointsToAdd
@@ -41,7 +40,7 @@ func (s Score) isGameCompleted() bool {
 	return s.Points1 >= 60 || s.Points2 >= 60
 }
 
-func (s Score) winnerTeam() Team {
+func (s Score) winTeam() Team {
 	if !s.isGameCompleted() {
 		return Team("")
 	}

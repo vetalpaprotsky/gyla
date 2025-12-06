@@ -17,23 +17,23 @@ type Round struct {
 
 func newRound(curRound Round) (Round, error) {
 	if curRound.Number >= maxPossibleNumberOfRounds {
-		msg := "Max possible number of rounds already started."
+		msg := "Max possible number of rounds started. Can't start a new one."
 		return Round{}, errors.New(msg)
 	}
 
-	if !curRound.IsCompleted() {
-		msg := "Current round isn't completed. New round can't be started."
+	winTeam, winTeamOk := curRound.winTeam()
+	if !winTeamOk {
+		msg := "Current round doesn't have a win team. Can't start a new one."
 		return Round{}, errors.New(msg)
 	}
 
 	round := Round{relation: curRound.relation, Number: curRound.Number + 1}
 
-	err := round.dealHands()
-	if err != nil {
+	if err := round.dealHands(); err != nil {
 		return Round{}, err
 	}
 
-	if curRound.winnerTeam() == curRound.starterTeam() {
+	if winTeam == curRound.starterTeam() {
 		round.starter = curRound.starter
 	} else {
 		round.starter = curRound.starterLeftOpponent()
@@ -45,12 +45,15 @@ func newRound(curRound Round) (Round, error) {
 func newFirstRound(pr PlayersRelation) (Round, error) {
 	round := Round{relation: pr, Number: 1}
 
-	err := round.dealHands()
-	if err != nil {
+	if err := round.dealHands(); err != nil {
 		return Round{}, err
 	}
 
-	round.starter = round.findPlayerWithNineOfDiamonds()
+	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
+		round.starter = starter
+	} else {
+		panic("Player with nine of diamonds isn't found")
+	}
 
 	return round, nil
 }
@@ -89,7 +92,6 @@ func (r *Round) startNextTrick() (*Trick, error) {
 	return &r.Tricks[len(r.Tricks)-1], nil
 }
 
-// TODO: Any error handing? player might be invalid.
 func (r *Round) getHand(player Player) *Hand {
 	for i := 0; i < len(r.Hands); i++ {
 		if r.Hands[i].Player == player {
@@ -97,7 +99,6 @@ func (r *Round) getHand(player Player) *Hand {
 		}
 	}
 
-	// Not expected
 	return nil
 }
 
@@ -124,7 +125,10 @@ func (r *Round) assignTrump(suit Suit) error {
 	return nil
 }
 
+// TODO: If one hand has four 7, or four 6, and we need to re-deal the cards.
+// It's not allowed by the game rules.
 func (r *Round) dealHands() error {
+	// TODO: Do panic here. It's not expected to call this method twice.
 	if len(r.Hands) > 0 {
 		return errors.New("Hands have been dealt already")
 	}
@@ -141,8 +145,7 @@ func (r *Round) dealHands() error {
 	return nil
 }
 
-// TODO: comma ok idiom
-func (r *Round) findPlayerWithNineOfDiamonds() Player {
+func (r *Round) findPlayerWithNineOfDiamonds() (Player, bool) {
 	for i := 0; i < len(r.Hands); i++ {
 		hand := r.Hands[i]
 
@@ -150,20 +153,32 @@ func (r *Round) findPlayerWithNineOfDiamonds() Player {
 			card := hand.Cards[j]
 
 			if card.Rank == NineRank && card.Suit == DiamondsSuit {
-				return hand.Player
+				return hand.Player, true
 			}
 		}
 	}
 
-	// Not expected
-	return Player("")
+	return Player(""), false
 }
 
-// TODO: Check for errors and return them if needed.
-func (r *Round) makeMove(player Player, card Card) {
+func (r *Round) makeMove(player Player, card Card) error {
 	hand := r.getHand(player)
-	hand.makeMove(card)
-	r.CurrentTrick().addMove(player, card)
+
+	if hand == nil {
+		msg := fmt.Sprintf("Player <%s> hand isn't found. Can't make move.", player)
+		return errors.New(msg)
+	}
+
+	trick := r.CurrentTrick()
+	if trick == nil {
+		return errors.New("No current trick. Can't make move.")
+	}
+
+	if err := hand.makeMove(card, trick); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Round) availableCardsForMove(player Player) []Card {
@@ -187,38 +202,73 @@ func (r *Round) IsCompleted() bool {
 	return true
 }
 
-func (r *Round) winnerTeam() Team {
-	tricksCount := map[Team]int{}
-
+func (r *Round) winTeam() (Team, bool) {
 	if !r.IsCompleted() {
-		return Team("")
-	}
-
-	for _, trick := range r.Tricks {
-		tricksCount[r.relation.getTeam(trick.Winner())] += 1
+		return Team(""), false
 	}
 
 	starterTeam := r.starterTeam()
 	opponentTeam := r.starterOpponentTeam()
+	starterTeamTricks := 0
+	opponentTeamTricks := 0
 
-	// Draw is impossible.
-	if tricksCount[starterTeam] > tricksCount[opponentTeam] {
-		return starterTeam
+	for _, trick := range r.Tricks {
+		// It's safe to skip bool value in this case, since we're sure that
+		// winner is present, since all tricks are have a winner at this point.
+		winner, _ := trick.Winner()
+
+		switch winnerTeam := r.relation.getTeam(winner); winnerTeam {
+		case starterTeam:
+			starterTeamTricks += 1
+		case opponentTeam:
+			opponentTeamTricks += 1
+		default:
+			msg := fmt.Sprintf(
+				"Team <%s> with Player <%s> doesn't exist.",
+				winner,
+				winnerTeam,
+			)
+			panic(msg)
+		}
+	}
+
+	if starterTeamTricks > opponentTeamTricks {
+		return starterTeam, true
+	} else if starterTeamTricks < opponentTeamTricks {
+		return opponentTeam, true
 	} else {
-		return opponentTeam
+		panic("Draw in a round. Impossible case.")
 	}
 }
 
 func (r *Round) starterTeam() Team {
-	return r.relation.getTeam(r.starter)
+	team := r.relation.getTeam(r.starter)
+
+	if team == Team("") {
+		panic(fmt.Sprintf("Starter player <%s> team is missing", r.starter))
+	}
+
+	return team
 }
 
 func (r *Round) starterOpponentTeam() Team {
+	team := r.relation.getOpponentTeam(r.starter)
+
+	if team == Team("") {
+		panic(fmt.Sprintf("Starter player <%s> opponent team is missing", r.starter))
+	}
+
 	return r.relation.getOpponentTeam(r.starter)
 }
 
 func (r *Round) starterLeftOpponent() Player {
-	return r.relation.getLeftOpponent(r.starter)
+	opponent := r.relation.getLeftOpponent(r.starter)
+
+	if opponent == Player("") {
+		panic(fmt.Sprintf("Starter player <%s> left opponent is missing", r.starter))
+	}
+
+	return opponent
 }
 
 func createShuffledDeckOfCards() []Card {

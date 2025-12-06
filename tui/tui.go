@@ -30,7 +30,7 @@ func Card(c models.Card) string {
 		color = black
 	}
 
-	return underline + color + string(c.Rank) + c.Suit.Tui() + reset
+	return underline + color + string(c.Rank) + Suit(c.Suit) + reset
 }
 
 func Suit(s models.Suit) string {
