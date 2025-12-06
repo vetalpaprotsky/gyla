@@ -47,7 +47,7 @@ func (h *Hand) availableCardsForMove(trick Trick) []Card {
 	}
 }
 
-func (h *Hand) takeMove(card Card) error {
+func (h *Hand) makeMove(card Card) error {
 	newCards := make([]Card, 0, len(h.Cards))
 
 	for _, c := range h.Cards {

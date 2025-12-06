@@ -18,8 +18,8 @@ func stateChangeCallback(g *models.Game) {
 	fmt.Printf("\t%s: %s, %s\n", g.Relation.Team1, g.Relation.Player1, g.Relation.Player3)
 	fmt.Printf("\t%s: %s, %s\n", g.Relation.Team2, g.Relation.Player2, g.Relation.Player4)
 
-	round, roundOk := g.CurrentRound()
-	if !roundOk {
+	round := g.CurrentRound()
+	if round == nil {
 		return
 	}
 

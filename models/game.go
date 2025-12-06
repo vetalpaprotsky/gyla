@@ -64,7 +64,12 @@ func (g *Game) StartGameLoop(
 		stateChangeCallback(g)
 
 		for range tricksPerRoundCount {
-			trick := round.startNextTrick()
+			trick, err := round.startNextTrick()
+
+			if err != nil {
+				return err
+			}
+
 			starter := trick.starter
 
 			// New trick started.
@@ -72,7 +77,7 @@ func (g *Game) StartGameLoop(
 
 			for p := starter; ; p = g.Relation.getLeftOpponent(p) {
 				card := playerMoveCallback(p, round.availableCardsForMove(p))
-				round.takeMove(p, card)
+				round.makeMove(p, card)
 
 				// Move taken.
 				stateChangeCallback(g)
@@ -95,29 +100,29 @@ func (g *Game) StartGameLoop(
 	return nil
 }
 
-func (g *Game) CurrentRound() (Round, bool) {
+func (g *Game) CurrentRound() *Round {
 	if len(g.Rounds) == 0 {
-		return Round{}, false
+		return nil
 	}
 
-	curRound := g.Rounds[0]
+	curRound := &g.Rounds[0]
 	for i := 1; i < len(g.Rounds); i++ {
 		if g.Rounds[i].Number > curRound.Number {
-			curRound = g.Rounds[i]
+			curRound = &g.Rounds[i]
 		}
 	}
 
-	return curRound, true
+	return curRound
 }
 
 func (g *Game) startNextRound() (*Round, error) {
 	var round Round
 	var err error
 
-	if curRound, ok := g.CurrentRound(); ok {
-		round, err = newRound(curRound)
-	} else {
+	if curRound := g.CurrentRound(); curRound == nil {
 		round, err = newFirstRound(g.Relation)
+	} else {
+		round, err = newRound(*curRound)
 	}
 
 	if err != nil {

@@ -70,21 +70,26 @@ func (r *Round) CurrentTrick() *Trick {
 	return trick
 }
 
-func (r *Round) startNextTrick() *Trick {
-	curTrick := r.CurrentTrick()
+func (r *Round) startNextTrick() (*Trick, error) {
 	var trick Trick
+	var err error
 
-	if curTrick == nil {
+	if curTrick := r.CurrentTrick(); curTrick == nil {
 		trick = newFirstTrick(r.starter)
 	} else {
-		trick = newTrick(*curTrick)
+		trick, err = newTrick(*curTrick)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	r.Tricks = append(r.Tricks, trick)
 
-	return &r.Tricks[len(r.Tricks)-1]
+	return &r.Tricks[len(r.Tricks)-1], nil
 }
 
+// TODO: Any error handing? player might be invalid.
 func (r *Round) getHand(player Player) *Hand {
 	for i := 0; i < len(r.Hands); i++ {
 		if r.Hands[i].Player == player {
@@ -136,6 +141,7 @@ func (r *Round) dealHands() error {
 	return nil
 }
 
+// TODO: comma ok idiom
 func (r *Round) findPlayerWithNineOfDiamonds() Player {
 	for i := 0; i < len(r.Hands); i++ {
 		hand := r.Hands[i]
@@ -154,9 +160,9 @@ func (r *Round) findPlayerWithNineOfDiamonds() Player {
 }
 
 // TODO: Check for errors and return them if needed.
-func (r *Round) takeMove(player Player, card Card) {
+func (r *Round) makeMove(player Player, card Card) {
 	hand := r.getHand(player)
-	hand.takeMove(card)
+	hand.makeMove(card)
 	r.CurrentTrick().addMove(player, card)
 }
 

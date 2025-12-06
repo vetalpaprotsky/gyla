@@ -1,5 +1,10 @@
 package models
 
+import (
+	"errors"
+	"fmt"
+)
+
 type Trick struct {
 	Number  int
 	starter Player
@@ -10,19 +15,39 @@ func newFirstTrick(starter Player) Trick {
 	return Trick{Number: 1, starter: starter}
 }
 
-// TODO: Add error is more than 9 tricks started, or curTrick isn't finished.
-func newTrick(curTrick Trick) Trick {
-	return Trick{Number: curTrick.Number + 1, starter: curTrick.Winner()}
+func newTrick(curTrick Trick) (Trick, error) {
+	if curTrick.Number >= tricksPerRoundCount {
+		msg := "Max possible tricks per round started. Can't start a new one."
+		return Trick{}, errors.New(msg)
+	}
+
+	return Trick{Number: curTrick.Number + 1, starter: curTrick.Winner()}, nil
 }
 
-// TODO: Add error if more than 4 moves added, or same player added, or same card
-// added, or order is incorrect(last player move be a right opponent of the current player).
-func (t *Trick) addMove(player Player, card Card) {
+func (t *Trick) addMove(player Player, card Card) error {
+	if len(t.Moves) >= movesPerTrickCount {
+		msg := "Max possible moves per trick added. Can't add a new one."
+		return errors.New(msg)
+	}
+
+	for _, m := range t.Moves {
+		if m.Player == player {
+			msg := fmt.Sprintf("Player %s already made a move in a trick", player)
+			return errors.New(msg)
+		}
+
+		if m.Card.ID() == card.ID() {
+			msg := fmt.Sprintf("Card %s already in a trick", card.ID())
+			return errors.New(msg)
+		}
+	}
+
 	t.Moves = append(t.Moves, Move{Player: player, Card: card})
+
+	return nil
 }
 
-// TODO: Add error if trick isn't completed (len(t.Moves) != 4)
-// In that case it should return *Move and error
+// TODO: use ok idiom if trick isn't completed
 func (t Trick) winMove() Move {
 	firstMove := *t.firstMove()
 	winMove := firstMove
@@ -46,10 +71,12 @@ func (t Trick) winMove() Move {
 	return winMove
 }
 
+// TODO: comma ok idiom
 func (t Trick) Winner() Player {
 	return t.winMove().Player
 }
 
+// TODO: Use comma ok idiom, don't return a pointer.
 func (t Trick) firstMove() *Move {
 	for i := 0; i < len(t.Moves); i++ {
 		move := &t.Moves[i]
@@ -73,5 +100,5 @@ func (t Trick) hasAnyTrumps() bool {
 }
 
 func (t Trick) IsCompleted() bool {
-	return len(t.Moves) == movesInTrickCount
+	return len(t.Moves) == movesPerTrickCount
 }
