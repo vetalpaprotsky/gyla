@@ -3,19 +3,12 @@ package models
 import (
 	"errors"
 	"fmt"
+	"slices"
 )
 
 type Hand struct {
 	Player Player
 	Cards  []Card
-}
-
-func (h *Hand) assignTrump(suit Suit) {
-	for i, c := range h.Cards {
-		if c.Suit == suit {
-			h.Cards[i].IsTrump = true
-		}
-	}
 }
 
 func (h *Hand) availableCardsForMove(trick Trick) []Card {
@@ -75,7 +68,7 @@ func (h *Hand) makeMove(card Card, trick *Trick) error {
 }
 
 func (h *Hand) removeCard(card Card) ([]Card, bool) {
-	if !isCardInSlice(card, h.Cards) {
+	if !slices.Contains(h.Cards, card) {
 		return []Card{}, false
 	}
 
@@ -90,7 +83,7 @@ func (h *Hand) removeCard(card Card) ([]Card, bool) {
 }
 
 func (h *Hand) canMakeMove(card Card, trick Trick) bool {
-	return isCardInSlice(card, h.availableCardsForMove(trick))
+	return slices.Contains(h.availableCardsForMove(trick), card)
 }
 
 func (h *Hand) trumps() []Card {
@@ -117,14 +110,4 @@ func (h *Hand) plainSuitCards(suit Suit) []Card {
 	}
 
 	return plainCards
-}
-
-func isCardInSlice(card Card, cards []Card) bool {
-	for _, c := range cards {
-		if c == card {
-			return true
-		}
-	}
-
-	return false
 }

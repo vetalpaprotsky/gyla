@@ -104,7 +104,13 @@ func (r *Round) TricksPerTeam() TricksPerTeam {
 	return newTricksPerTeam(*r)
 }
 
+// TODO: This method will be called when client sends an action to the server,
+// let's say "TrumpAssignment". We shouldn't panic here. If trump is invalid,
+// just return error. If trump is assigned, just return error. This shouldn't
+// break the game. Currently we only check if trump is assigned.
 func (r *Round) assignTrump(suit Suit) error {
+	// TODO: Check for invalid trump.
+
 	if r.Trump != "" {
 		errorMsg := fmt.Sprintf(
 			"Can't assign %s Trump, it's already assigned to %s",
@@ -116,8 +122,12 @@ func (r *Round) assignTrump(suit Suit) error {
 
 	r.Trump = suit
 
-	for i := 0; i < len(r.Hands); i++ {
-		r.Hands[i].assignTrump(suit)
+	for _, h := range r.Hands {
+		for i, c := range h.Cards {
+			if c.Suit == suit {
+				h.Cards[i].IsTrump = true
+			}
+		}
 	}
 
 	return nil
