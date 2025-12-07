@@ -122,7 +122,7 @@ func (g *Game) startNextRound() (*Round, error) {
 	var err error
 
 	if curRound := g.CurrentRound(); curRound == nil {
-		round, err = newFirstRound(g.Relation)
+		round = newFirstRound(g.Relation)
 	} else {
 		round, err = newRound(*curRound)
 	}

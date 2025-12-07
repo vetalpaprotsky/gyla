@@ -15,6 +15,9 @@ type Round struct {
 	relation PlayersRelation
 }
 
+// TODO: When score of the starter(the one which chooses a trump) goes over
+// 30, then its teammate must start the next round. One player can't choose
+// a trump always.
 func newRound(curRound Round) (Round, error) {
 	if curRound.Number >= maxPossibleNumberOfRounds {
 		msg := "Max possible number of rounds started. Can't start a new one."
@@ -28,10 +31,7 @@ func newRound(curRound Round) (Round, error) {
 	}
 
 	round := Round{relation: curRound.relation, Number: curRound.Number + 1}
-
-	if err := round.dealHands(); err != nil {
-		return Round{}, err
-	}
+	round.dealHands()
 
 	if winTeam == curRound.starterTeam() {
 		round.starter = curRound.starter
@@ -42,12 +42,9 @@ func newRound(curRound Round) (Round, error) {
 	return round, nil
 }
 
-func newFirstRound(pr PlayersRelation) (Round, error) {
+func newFirstRound(pr PlayersRelation) Round {
 	round := Round{relation: pr, Number: 1}
-
-	if err := round.dealHands(); err != nil {
-		return Round{}, err
-	}
+	round.dealHands()
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
@@ -55,7 +52,7 @@ func newFirstRound(pr PlayersRelation) (Round, error) {
 		panic("Player with nine of diamonds isn't found")
 	}
 
-	return round, nil
+	return round
 }
 
 func (r *Round) CurrentTrick() *Trick {
@@ -127,10 +124,9 @@ func (r *Round) assignTrump(suit Suit) error {
 
 // TODO: If one hand has four 7, or four 6, and we need to re-deal the cards.
 // It's not allowed by the game rules.
-func (r *Round) dealHands() error {
-	// TODO: Do panic here. It's not expected to call this method twice.
+func (r *Round) dealHands() {
 	if len(r.Hands) > 0 {
-		return errors.New("Hands have been dealt already")
+		panic("Hands have been dealt already")
 	}
 
 	players := r.relation.allPlayers()
@@ -141,8 +137,6 @@ func (r *Round) dealHands() error {
 		end := start + cardsInHandCount
 		r.Hands[i] = Hand{Player: players[i], Cards: deck[start:end]}
 	}
-
-	return nil
 }
 
 func (r *Round) findPlayerWithNineOfDiamonds() (Player, bool) {

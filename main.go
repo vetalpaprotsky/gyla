@@ -60,6 +60,11 @@ func stateChangeCallback(g *models.Game) {
 		fmt.Printf("\t%s: %s\n", hand.Player, tui.Cards(hand.Cards))
 	}
 
+	fmt.Println("Suits:")
+	for _, s := range models.ValidSuits {
+		fmt.Printf("\t%s -> %s\n", tui.Suit(s), s)
+	}
+
 	trick := round.CurrentTrick()
 	if trick == nil {
 		return
@@ -77,7 +82,7 @@ func playerTrumpAssignmentCallback(p models.Player, cards []models.Card) models.
 	for {
 		var suitStr string
 
-		fmt.Printf("Enter trump suit <%s>:", p)
+		fmt.Printf("Enter trump suit (%s) <%s>:", tui.Cards(cards), p)
 		fmt.Scan(&suitStr)
 		suit := models.Suit(strings.ToUpper(suitStr))
 
