@@ -54,7 +54,7 @@ func (t *Trick) addMove(player Player, card Card) error {
 }
 
 func (t Trick) winMove() (Move, bool) {
-	if len(t.Moves) != tricksPerRoundCount {
+	if len(t.Moves) != movesPerTrickCount {
 		return Move{}, false
 	}
 
