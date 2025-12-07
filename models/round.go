@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 )
 
 type Round struct {
@@ -30,8 +29,11 @@ func newRound(curRound Round) (Round, error) {
 		return Round{}, errors.New(msg)
 	}
 
-	round := Round{relation: curRound.relation, Number: curRound.Number + 1}
-	round.dealHands()
+	round := Round{
+		relation: curRound.relation,
+		Number:   curRound.Number + 1,
+		Hands:    newDeck().deal(curRound.relation),
+	}
 
 	if winTeam == curRound.starterTeam() {
 		round.starter = curRound.starter
@@ -43,8 +45,7 @@ func newRound(curRound Round) (Round, error) {
 }
 
 func newFirstRound(pr PlayersRelation) Round {
-	round := Round{relation: pr, Number: 1}
-	round.dealHands()
+	round := Round{relation: pr, Number: 1, Hands: newDeck().deal(pr)}
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
@@ -120,23 +121,6 @@ func (r *Round) assignTrump(suit Suit) error {
 	}
 
 	return nil
-}
-
-// TODO: If one hand has four 7, or four 6, and we need to re-deal the cards.
-// It's not allowed by the game rules.
-func (r *Round) dealHands() {
-	if len(r.Hands) > 0 {
-		panic("Hands have been dealt already")
-	}
-
-	players := r.relation.allPlayers()
-	deck := createShuffledDeckOfCards()
-	r.Hands = make([]Hand, playersCount)
-	for i := range players {
-		start := i * cardsInHandCount
-		end := start + cardsInHandCount
-		r.Hands[i] = Hand{Player: players[i], Cards: deck[start:end]}
-	}
 }
 
 func (r *Round) findPlayerWithNineOfDiamonds() (Player, bool) {
@@ -263,38 +247,4 @@ func (r *Round) starterLeftOpponent() Player {
 	}
 
 	return opponent
-}
-
-func createShuffledDeckOfCards() []Card {
-	shuffledIndexes := createSliceWithShuffledIndexes()
-	deck := make([]Card, cardsCount)
-	k := 0
-
-	for i := range ranksCount {
-		for j := range suitsCount {
-			randInx := shuffledIndexes[k]
-			card, _ := newCard(ValidRanks[i], ValidSuits[j]) // safe to ignore error
-			deck[randInx] = card
-			k++
-		}
-	}
-
-	return deck
-}
-
-// Fisher–Yates shuffle
-func createSliceWithShuffledIndexes() []int {
-	// [0, 1, 2, 3, ..., 35]
-	indexes := make([]int, cardsCount)
-	for i := range indexes {
-		indexes[i] = i
-	}
-
-	// [4, 9, 11, 23, ..., 19]
-	for i := len(indexes) - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)
-		indexes[i], indexes[j] = indexes[j], indexes[i]
-	}
-
-	return indexes
 }
