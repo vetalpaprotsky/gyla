@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// TODO: We better not store moves in array. It's no really safe.
+// I think it's better to create 4 fields, since we always know that 4 moves
+// must be done.
 type Trick struct {
 	Number  int
 	starter Player
@@ -30,6 +33,7 @@ func newTrick(curTrick Trick) (Trick, error) {
 	return Trick{Number: curTrick.Number + 1, starter: winner}, nil
 }
 
+// TODO: Validate order! Players must make moves in correct order.
 func (t *Trick) addMove(player Player, card Card) error {
 	if t.IsCompleted() {
 		msg := "Trick is completed. Can't add a new card to it."

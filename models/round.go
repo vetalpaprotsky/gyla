@@ -18,6 +18,10 @@ type Round struct {
 // 30, then its teammate must start the next round. One player can't choose
 // a trump always.
 func newRound(curRound Round) (Round, error) {
+	// TODO: use panic instead of errors. Why?
+	// This is internal state which isn't impacted by client actions at all.
+	// If something is off here, it's because the logic is incorrect, or there
+	// is some bug. It's not a recoverable error - it should be panic.
 	if curRound.Number >= maxPossibleNumberOfRounds {
 		msg := "Max possible number of rounds started. Can't start a new one."
 		return Round{}, errors.New(msg)

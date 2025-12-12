@@ -5,10 +5,32 @@ import (
 	"strings"
 )
 
+type Suit string
+type Rank string
 type Card struct {
 	Rank    Rank
 	Suit    Suit
 	IsTrump bool
+}
+
+func (s Suit) IsValid() bool {
+	for _, validSuit := range ValidSuits {
+		if s == validSuit {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (r Rank) IsValid() bool {
+	for _, validRank := range ValidRanks {
+		if r == validRank {
+			return true
+		}
+	}
+
+	return false
 }
 
 func newCard(rank Rank, suit Suit) (Card, error) {
