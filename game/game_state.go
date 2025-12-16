@@ -12,44 +12,53 @@ type Card struct {
 }
 
 type Trick struct {
-	Player1Move Card
-	Player2Move Card
-	Player3Move Card
-	Player4Move Card
+	Player        Card
+	LeftOpponent  Card
+	Teammate      Card
+	RightOpponent Card
 
 	Starter Player
 	Winner  Player
 }
 
 type GameState struct {
-	Team1   Team
-	Player1 Player
-	Player3 Player
+	Team              Team
+	OpponentTeam      Team
+	TeamScore         int
+	OpponentTeamScore int
 
-	Team2   Team
-	Player2 Player
-	Player4 Player
+	Player        Player
+	LeftOpponent  Player
+	Teammate      Player
+	RightOpponent Player
 
-	Team1Score int
-	Team2Score int
-	WinnerTeam Team
+	LeftOpponentBot  bool
+	TeammateBot      bool
+	RightOpponentBot bool
 
-	Player1Bot bool
-	Player2Bot bool
-	Player3Bot bool
-	Player4Bot bool
+	Cards                   []Card
+	LeftOpponentCardsCount  int
+	TeammateCardsCount      int
+	RightOpponentCardsCount int
 
-	Player1Cards []Card
-	Player2Cards []Card
-	Player3Cards []Card
-	Player4Cards []Card
-	Trump        Suit
+	NextMoveBy Player
 
-	RoundNumber  int
-	RoundStarter Player
+	CurrentTrick             Trick
+	Tricks                   []Trick
+	LeftOpponentTricksCount  int
+	TeammateTricks           []Trick
+	RightOpponentTricksCount int
 
-	Team1Tricks  []Trick
-	Team2Tricks  []Trick
-	Trick        Trick
-	TrickStarter Player
+	// Chooses trump after "round_started" event is sent.
+	Trumper       Player
+	Trump         Suit
+	TrumperHasSix bool
+
+	RoundNumber int
+
+	// Must be set when "round_completed" event is sent.
+	RoundWinnerTeam Team
+
+	// Must be set when "game_completed" event is sent.
+	GameWinnerTeam Team
 }
