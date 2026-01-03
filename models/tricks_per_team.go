@@ -8,10 +8,10 @@ type TricksPerTeam struct {
 }
 
 func newTricksPerTeam(r Round) TricksPerTeam {
-	relation := r.relation
+	plrsRel := r.plrsRel
 	result := TricksPerTeam{
-		Team1: relation.Team1,
-		Team2: relation.Team2,
+		Team1: plrsRel.Team1,
+		Team2: plrsRel.Team2,
 	}
 
 	for _, t := range r.Tricks {
@@ -20,7 +20,7 @@ func newTricksPerTeam(r Round) TricksPerTeam {
 			continue
 		}
 
-		if relation.getTeam(winner) == relation.Team1 {
+		if plrsRel.getTeam(winner) == plrsRel.Team1 {
 			result.Tricks1 += 1
 		} else {
 			result.Tricks2 += 1

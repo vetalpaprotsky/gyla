@@ -11,8 +11,8 @@ type Score struct {
 // points must be different.
 func newScore(g Game) Score {
 	score := Score{
-		Team1: g.Relation.Team1,
-		Team2: g.Relation.Team2,
+		Team1: g.PlrsRel.Team1,
+		Team2: g.PlrsRel.Team2,
 	}
 
 	for _, round := range g.Rounds {

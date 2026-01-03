@@ -57,7 +57,7 @@ func (pr PlayersRelation) getTeammate(p Player) Player {
 	}
 }
 
-func (pr PlayersRelation) teamPlayers(t Team) []Player {
+func (pr PlayersRelation) getTeamPlayers(t Team) []Player {
 	switch t {
 	case pr.Team1:
 		return []Player{pr.Player1, pr.Player3}
@@ -68,6 +68,15 @@ func (pr PlayersRelation) teamPlayers(t Team) []Player {
 	}
 }
 
-func (pr PlayersRelation) allPlayers() []Player {
+func (pr PlayersRelation) getAllPlayers() []Player {
 	return []Player{pr.Player1, pr.Player2, pr.Player3, pr.Player4}
+}
+
+func (pr PlayersRelation) isPlayerValid(p Player) bool {
+	switch p {
+	case pr.Player1, pr.Player2, pr.Player3, pr.Player4:
+		return true
+	default:
+		return false
+	}
 }

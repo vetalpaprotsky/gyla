@@ -5,19 +5,18 @@ import (
 	"fmt"
 )
 
-// TODO: We better not store moves in array. It's no really safe.
-// I think it's better to create 4 fields, since we always know that 4 moves
-// must be done.
 type Trick struct {
 	Number  int
 	starter Player
-	Moves   []Move
+	plrsRel PlayersRelation
+	Cards   map[Player]Card
 }
 
-func newFirstTrick(starter Player) Trick {
-	return Trick{Number: 1, starter: starter}
+func newFirstTrick(starter Player, plrsRel PlayersRelation) Trick {
+	return Trick{Number: 1, starter: starter, plrsRel: plrsRel, Cards: make(map[Player]Card)}
 }
 
+// NOTE: All these errors are NOT meant to be retriable.
 func newTrick(curTrick Trick) (Trick, error) {
 	if curTrick.Number >= tricksPerRoundCount {
 		msg := "Max possible tricks per round started. Can't start a new one."
@@ -30,95 +29,120 @@ func newTrick(curTrick Trick) (Trick, error) {
 		return Trick{}, errors.New(msg)
 	}
 
-	return Trick{Number: curTrick.Number + 1, starter: winner}, nil
+	return Trick{
+		Number:  curTrick.Number + 1,
+		starter: winner,
+		plrsRel: curTrick.plrsRel,
+		Cards:   make(map[Player]Card),
+	}, nil
 }
 
-// TODO: Validate order! Players must make moves in correct order.
-func (t *Trick) addMove(player Player, card Card) error {
+// NOTE: All these errors are meant to be retriable.
+func (t *Trick) addCard(player Player, card Card) error {
+	var errMsg string
+
 	if t.IsCompleted() {
-		msg := "Trick is completed. Can't add a new card to it."
-		return errors.New(msg)
+		errMsg = "Trick is completed. Can't add a new card to it."
+	} else if !t.isPlayerValid(player) {
+		errMsg = fmt.Sprintf("Player <%s> is invalid.", player)
+	} else if t.playerAlreadyAddedCard(player) {
+		errMsg = fmt.Sprintf(
+			"Player <%s> already added card <%s> to a trick.",
+			player,
+			t.Cards[player],
+		)
+	} else if t.expectedNextPlayer() != player {
+		errMsg = fmt.Sprintf(
+			"Player <%s> is expected to add the next card to a trick, not <%s>.",
+			t.expectedNextPlayer(),
+			player,
+		)
 	}
 
-	for _, m := range t.Moves {
-		if m.Player == player {
-			msg := fmt.Sprintf("Player <%s> already made a move in a trick", player)
-			return errors.New(msg)
-		}
-
-		if m.Card == card {
-			msg := fmt.Sprintf("Card <%s> already in a trick", card)
-			return errors.New(msg)
-		}
+	if errMsg != "" {
+		return errors.New(errMsg)
 	}
 
-	t.Moves = append(t.Moves, Move{Player: player, Card: card})
-
+	t.Cards[player] = card
 	return nil
 }
 
-func (t Trick) winMove() (Move, bool) {
-	if len(t.Moves) != movesPerTrickCount {
-		return Move{}, false
+func (t Trick) Winner() (Player, bool) {
+	if !t.IsCompleted() {
+		return Player(""), false
 	}
 
-	// It's safe to skip bool value in this case, since we're sure that
-	// the first move is present in the trick at this point.
-	firstMove, _ := t.firstMove()
-	winMove := firstMove
+	winPlayer := t.starter
+	firstCard := t.firstCard()
+	winCard := firstCard
 
 	if t.hasAnyTrumps() {
-		for _, move := range t.Moves {
-			if move.Card.Level() > winMove.Card.Level() {
-				winMove = move
+		for player, card := range t.Cards {
+			if card.Level() > winCard.Level() {
+				winPlayer = player
+				winCard = card
 			}
 		}
 	} else {
-		leadingSuit := firstMove.Card.Suit
+		leadingSuit := firstCard.Suit
 
-		for _, move := range t.Moves {
-			if move.Card.Suit == leadingSuit && move.Card.Level() > winMove.Card.Level() {
-				winMove = move
+		for player, card := range t.Cards {
+			if card.Suit == leadingSuit && card.Level() > winCard.Level() {
+				winPlayer = player
+				winCard = card
 			}
 		}
 	}
 
-	return winMove, true
+	return winPlayer, true
 }
 
-func (t Trick) Winner() (Player, bool) {
-	if move, ok := t.winMove(); ok {
-		return move.Player, true
-	}
-
-	return Player(""), false
-}
-
-func (t Trick) IsCompleted() bool {
-	if _, ok := t.winMove(); ok {
-		return true
-	}
-
-	return false
-}
-
-func (t Trick) firstMove() (Move, bool) {
-	for i := 0; i < len(t.Moves); i++ {
-		move := t.Moves[i]
-		if move.Player == t.starter {
-			return move, true
-		}
-	}
-
-	return Move{}, false
+func (t Trick) firstCard() Card {
+	return t.Cards[t.starter]
 }
 
 func (t Trick) hasAnyTrumps() bool {
-	for _, move := range t.Moves {
-		if move.Card.IsTrump {
+	for _, card := range t.Cards {
+		if card.IsTrump {
 			return true
 		}
 	}
 
 	return false
+}
+
+func (t Trick) isPlayerValid(p Player) bool {
+	return t.plrsRel.isPlayerValid(p)
+}
+
+func (t Trick) playerAlreadyAddedCard(p Player) bool {
+	_, ok := t.Cards[p]
+
+	return ok
+}
+
+func (t Trick) isEmpty() bool {
+	return len(t.Cards) == 0
+}
+
+func (t Trick) IsCompleted() bool {
+	return len(t.Cards) == playersCount
+}
+
+func (t Trick) expectedNextPlayer() Player {
+	if t.IsCompleted() {
+		return Player("")
+	}
+
+	if t.isEmpty() {
+		return t.starter
+	}
+
+	player := t.starter
+	for {
+		player = t.plrsRel.getLeftOpponent(player)
+		if _, ok := t.Cards[player]; !ok {
+			return player
+		}
+	}
 }

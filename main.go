@@ -15,8 +15,8 @@ import (
 func stateChangeCallback(g *models.Game) {
 	fmt.Println("------------------------------------------------------------")
 	fmt.Println("Teams:")
-	fmt.Printf("\t%s: %s, %s\n", g.Relation.Team1, g.Relation.Player1, g.Relation.Player3)
-	fmt.Printf("\t%s: %s, %s\n", g.Relation.Team2, g.Relation.Player2, g.Relation.Player4)
+	fmt.Printf("\t%s: %s, %s\n", g.PlrsRel.Team1, g.PlrsRel.Player1, g.PlrsRel.Player3)
+	fmt.Printf("\t%s: %s, %s\n", g.PlrsRel.Team2, g.PlrsRel.Player2, g.PlrsRel.Player4)
 
 	round := g.CurrentRound()
 	if round == nil {
@@ -41,9 +41,9 @@ func stateChangeCallback(g *models.Game) {
 		}
 
 		fmt.Printf("\tNumber: %d\n", trick.Number)
-		for _, move := range trick.Moves {
-			fmt.Printf("\t%s: %s", move.Player, tui.Card(move.Card))
-			if winner == move.Player {
+		for p, c := range trick.Cards {
+			fmt.Printf("\t%s: %s", p, tui.Card(c))
+			if winner == p {
 				fmt.Println(" -> Winner")
 			} else {
 				fmt.Println()
@@ -73,8 +73,8 @@ func stateChangeCallback(g *models.Game) {
 	fmt.Println("Trick number:", round.CurrentTrick().Number)
 	fmt.Println("Round trump:", tui.Suit(round.Trump))
 	fmt.Println("Moves:")
-	for _, move := range round.CurrentTrick().Moves {
-		fmt.Printf("\t%s: %s\n", move.Player, tui.Card(move.Card))
+	for p, c := range round.CurrentTrick().Cards {
+		fmt.Printf("\t%s: %s\n", p, tui.Card(c))
 	}
 }
 

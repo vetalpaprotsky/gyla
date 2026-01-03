@@ -1,8 +1,8 @@
 package models
 
 type Game struct {
-	Rounds   []Round
-	Relation PlayersRelation
+	Rounds  []Round
+	PlrsRel PlayersRelation
 }
 
 func NewGame(t1, p1, p3, t2, p2, p4 string) *Game {
@@ -14,7 +14,7 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) *Game {
 	player4 := Player(p4)
 
 	return &Game{
-		Relation: PlayersRelation{
+		PlrsRel: PlayersRelation{
 			Team1:   team1,
 			Player1: player1,
 			Player3: player3,
@@ -25,16 +25,6 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) *Game {
 	}
 }
 
-// TODO: We might want to add more callbacks to make things easier for the
-// client to understand what happed. Things like:
-// 1. Move take.
-// 2. Round started.
-// 3. Trick completed.
-// 4. Game completed.
-// 5. ...
-//
-// That way client won't need to dig in the game state to understand
-// what happened. But, let's see. For now let's keep things as they are.
 func (g *Game) StartGameLoop(
 	stateChangeCallback func(g *Game),
 	playerTrumpAssignmentCallback func(p Player, cards []Card) Suit,
@@ -75,14 +65,14 @@ func (g *Game) StartGameLoop(
 			// New trick started.
 			stateChangeCallback(g)
 
-			for p := starter; ; p = g.Relation.getLeftOpponent(p) {
+			for p := starter; ; p = g.PlrsRel.getLeftOpponent(p) {
 				card := playerMoveCallback(p, round.availableCardsForMove(p))
 				round.makeMove(p, card)
 
 				// Move taken.
 				stateChangeCallback(g)
 
-				if g.Relation.getLeftOpponent(p) == starter {
+				if g.PlrsRel.getLeftOpponent(p) == starter {
 					break
 				}
 			}
@@ -122,7 +112,7 @@ func (g *Game) startNextRound() (*Round, error) {
 	var err error
 
 	if curRound := g.CurrentRound(); curRound == nil {
-		round = newFirstRound(g.Relation)
+		round = newFirstRound(g.PlrsRel)
 	} else {
 		round, err = newRound(*curRound)
 	}

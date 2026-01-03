@@ -41,24 +41,28 @@ type GameState struct {
 	TeammateCardsCount      int
 	RightOpponentCardsCount int
 
-	NextMoveBy Player
-
 	CurrentTrick             Trick
 	Tricks                   []Trick
 	LeftOpponentTricksCount  int
 	TeammateTricks           []Trick
 	RightOpponentTricksCount int
 
-	// Chooses trump after "round_started" event is sent.
+	// Server expects this player to choose a trump when "round_started" event is sent.
 	Trumper       Player
-	Trump         Suit
 	TrumperHasSix bool
+	Trump         Suit
 
 	RoundNumber int
 
-	// Must be set when "round_completed" event is sent.
+	// Gets set by server when "round_completed" event is sent.
 	RoundWinnerTeam Team
 
-	// Must be set when "game_completed" event is sent.
+	// Gets set by server when "game_completed" event is sent.
 	GameWinnerTeam Team
+
+	// When this value is non zero, server expects "move" action from a client.
+	ExpextingNextMoveBy Player
+
+	// When this set to true, server expects "trump_choice" action from a client.
+	ExpextingToChooseTrump bool
 }
