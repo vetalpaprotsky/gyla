@@ -5,9 +5,14 @@ const (
 	TrumpChoiceAction = "trump_choice"
 )
 
-type PlayerAction struct {
+type Action struct {
+	Name   string
 	Player Player
-	Action string
 	Rank   Rank
 	Suit   Suit
+}
+
+type ActionRejectedError struct {
+	Action Action
+	Msg    string
 }

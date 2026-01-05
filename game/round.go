@@ -1,39 +1,60 @@
-package models
+package game
 
 import (
 	"errors"
 	"fmt"
 )
 
-type Round struct {
-	Number  int
-	Hands   []Hand
-	Tricks  []Trick
-	Trump   Suit
+type round struct {
+	number  int
+	hands   []hand
+	tricks  []trick
+	trump   Suit
 	starter Player
-	plrsRel PlayersRelation
+	plrsRel playersRelation
+}
+
+func (r round) deepCopy() round {
+	hands := make([]hand, 0, len(r.hands))
+	for _, h := range r.hands {
+		hands = append(hands, h.deepCopy())
+	}
+
+	tricks := make([]trick, 0, len(r.tricks))
+	for _, t := range r.tricks {
+		tricks = append(tricks, t.deepCopy())
+	}
+
+	return round{
+		number:  r.number,
+		hands:   hands,
+		tricks:  tricks,
+		trump:   r.trump,
+		starter: r.starter,
+		plrsRel: r.plrsRel,
+	}
 }
 
 // TODO: When score of the starter team goes over 30, then their teammate must
 // start the next round. One player can't choose trumps always.
-func newRound(curRound Round) (Round, error) {
-	if curRound.Number >= maxPossibleNumberOfRounds {
+func newRound(curRound round) (round, error) {
+	if curRound.number >= maxPossibleNumberOfRounds {
 		// NOTE: This is note expected error. Panic?
 		msg := "Max possible number of rounds started. Can't start a new one."
-		return Round{}, errors.New(msg)
+		return round{}, errors.New(msg)
 	}
 
 	winTeam, winTeamOk := curRound.winTeam()
 	if !winTeamOk {
 		// NOTE: This is note expected error. Panic?
 		msg := "Current round doesn't have a win team. Can't start a new one."
-		return Round{}, errors.New(msg)
+		return round{}, errors.New(msg)
 	}
 
-	round := Round{
+	round := round{
 		plrsRel: curRound.plrsRel,
-		Number:  curRound.Number + 1,
-		Hands:   newDeck().deal(curRound.plrsRel),
+		number:  curRound.number + 1,
+		hands:   newDeck().deal(curRound.plrsRel),
 	}
 
 	if winTeam == curRound.starterTeam() {
@@ -45,8 +66,8 @@ func newRound(curRound Round) (Round, error) {
 	return round, nil
 }
 
-func newFirstRound(pr PlayersRelation) Round {
-	round := Round{plrsRel: pr, Number: 1, Hands: newDeck().deal(pr)}
+func newFirstRound(pr playersRelation) round {
+	round := round{plrsRel: pr, number: 1, hands: newDeck().deal(pr)}
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
@@ -57,11 +78,11 @@ func newFirstRound(pr PlayersRelation) Round {
 	return round
 }
 
-func (r *Round) startNextTrick() (*Trick, error) {
-	var trick Trick
+func (r *round) startNextTrick() (*trick, error) {
+	var trick trick
 	var err error
 
-	if curTrick := r.CurrentTrick(); curTrick == nil {
+	if curTrick := r.currentTrick(); curTrick == nil {
 		trick = newFirstTrick(r.starter, r.plrsRel)
 	} else {
 		trick, err = newTrick(*curTrick)
@@ -71,23 +92,23 @@ func (r *Round) startNextTrick() (*Trick, error) {
 		return nil, err
 	}
 
-	r.Tricks = append(r.Tricks, trick)
+	r.tricks = append(r.tricks, trick)
 
-	return &r.Tricks[len(r.Tricks)-1], nil
+	return &r.tricks[len(r.tricks)-1], nil
 }
 
-func (r *Round) assignTrump(suit Suit) error {
-	if r.Trump != "" {
+func (r *round) assignTrump(suit Suit) error {
+	if r.trump != "" {
 		errorMsg := fmt.Sprintf(
 			"Can't assign <%s> trump, it's already assigned to <%s>.",
 			suit,
-			r.Trump,
+			r.trump,
 		)
 		return errors.New(errorMsg)
 	}
 
 	trumpIsValid := false
-	for _, validSuit := range ValidSuits {
+	for _, validSuit := range validSuits {
 		if suit == validSuit {
 			trumpIsValid = true
 		}
@@ -97,11 +118,11 @@ func (r *Round) assignTrump(suit Suit) error {
 		return errors.New(msg)
 	}
 
-	r.Trump = suit
-	for _, h := range r.Hands {
-		for i, c := range h.Cards {
+	r.trump = suit
+	for _, h := range r.hands {
+		for i, c := range h.cards {
 			if c.Suit == suit {
-				h.Cards[i].IsTrump = true
+				h.cards[i].IsTrump = true
 			}
 		}
 	}
@@ -109,8 +130,8 @@ func (r *Round) assignTrump(suit Suit) error {
 	return nil
 }
 
-func (r *Round) makeMove(player Player, card Card) error {
-	trick := r.CurrentTrick()
+func (r *round) makeMove(player Player, card Card) error {
+	trick := r.currentTrick()
 	if trick == nil {
 		return errors.New("No current trick. Can't make move.")
 	}
@@ -139,44 +160,44 @@ func (r *Round) makeMove(player Player, card Card) error {
 	return nil
 }
 
-func (r Round) CurrentTrick() *Trick {
-	if len(r.Tricks) == 0 {
+func (r round) currentTrick() *trick {
+	if len(r.tricks) == 0 {
 		return nil
 	}
 
-	trick := &r.Tricks[0]
-	for i := 1; i < len(r.Tricks); i++ {
-		if r.Tricks[i].Number > trick.Number {
-			trick = &r.Tricks[i]
+	trick := &r.tricks[0]
+	for i := 1; i < len(r.tricks); i++ {
+		if r.tricks[i].number > trick.number {
+			trick = &r.tricks[i]
 		}
 	}
 
 	return trick
 }
 
-func (r Round) getHand(player Player) *Hand {
-	for i := 0; i < len(r.Hands); i++ {
-		if r.Hands[i].Player == player {
-			return &r.Hands[i]
+func (r round) getHand(player Player) *hand {
+	for i := 0; i < len(r.hands); i++ {
+		if r.hands[i].player == player {
+			return &r.hands[i]
 		}
 	}
 
 	return nil
 }
 
-func (r Round) TricksPerTeam() TricksPerTeam {
+func (r round) tricksPerTeam() tricksPerTeam {
 	return newTricksPerTeam(r)
 }
 
-func (r Round) findPlayerWithNineOfDiamonds() (Player, bool) {
-	for i := 0; i < len(r.Hands); i++ {
-		hand := r.Hands[i]
+func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
+	for i := 0; i < len(r.hands); i++ {
+		hand := r.hands[i]
 
-		for j := 0; j < len(hand.Cards); j++ {
-			card := hand.Cards[j]
+		for j := 0; j < len(hand.cards); j++ {
+			card := hand.cards[j]
 
-			if card.Rank == NineRank && card.Suit == DiamondsSuit {
-				return hand.Player, true
+			if card.Rank == nineRank && card.Suit == diamondsSuit {
+				return hand.player, true
 			}
 		}
 	}
@@ -184,20 +205,20 @@ func (r Round) findPlayerWithNineOfDiamonds() (Player, bool) {
 	return Player(""), false
 }
 
-func (r Round) availableCardsForMove(player Player) []Card {
-	trick := *r.CurrentTrick()
+func (r round) availableCardsForMove(player Player) []Card {
+	trick := *r.currentTrick()
 	hand := r.getHand(player)
 
 	return hand.availableCardsForMove(trick)
 }
 
-func (r Round) IsCompleted() bool {
-	if len(r.Tricks) != tricksPerRoundCount {
+func (r round) isCompleted() bool {
+	if len(r.tricks) != tricksPerRoundCount {
 		return false
 	}
 
-	for _, trick := range r.Tricks {
-		if !trick.IsCompleted() {
+	for _, trick := range r.tricks {
+		if !trick.isCompleted() {
 			return false
 		}
 	}
@@ -205,8 +226,8 @@ func (r Round) IsCompleted() bool {
 	return true
 }
 
-func (r Round) winTeam() (Team, bool) {
-	if !r.IsCompleted() {
+func (r round) winTeam() (Team, bool) {
+	if !r.isCompleted() {
 		return Team(""), false
 	}
 
@@ -215,10 +236,10 @@ func (r Round) winTeam() (Team, bool) {
 	starterTeamTricks := 0
 	opponentTeamTricks := 0
 
-	for _, trick := range r.Tricks {
+	for _, trick := range r.tricks {
 		// It's safe to skip bool value in this case, since we're sure that
 		// winner is present, since all tricks are have a winner at this point.
-		winner, _ := trick.Winner()
+		winner, _ := trick.winner()
 
 		switch winnerTeam := r.plrsRel.getTeam(winner); winnerTeam {
 		case starterTeam:
@@ -244,27 +265,27 @@ func (r Round) winTeam() (Team, bool) {
 	}
 }
 
-func (r Round) starterTeam() Team {
-	team := r.plrsRel.getTeam(r.starter)
+func (r round) starterTeam() Team {
+	t := r.plrsRel.getTeam(r.starter)
 
-	if team == Team("") {
+	if t == Team("") {
 		panic(fmt.Sprintf("Starter player <%s> team is missing.", r.starter))
 	}
 
-	return team
+	return t
 }
 
-func (r Round) starterOpponentTeam() Team {
-	team := r.plrsRel.getOpponentTeam(r.starter)
+func (r round) starterOpponentTeam() Team {
+	t := r.plrsRel.getOpponentTeam(r.starter)
 
-	if team == Team("") {
+	if t == Team("") {
 		panic(fmt.Sprintf("Starter player <%s> opponent team is missing.", r.starter))
 	}
 
 	return r.plrsRel.getOpponentTeam(r.starter)
 }
 
-func (r Round) starterLeftOpponent() Player {
+func (r round) starterLeftOpponent() Player {
 	opponent := r.plrsRel.getLeftOpponent(r.starter)
 
 	if opponent == Player("") {

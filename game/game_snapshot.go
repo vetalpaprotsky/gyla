@@ -1,27 +1,14 @@
 package game
 
-type Team string
-type Player string
-type Rank string
-type Suit string
+// Maybe a different approach is needed?
 
-type Card struct {
-	Rank    string
-	Suit    string
-	IsTrump bool
+type gameSnapshot struct {
+	round   round
+	score   score
+	plrsRel playersRelation
 }
 
-type Trick struct {
-	Player        Card
-	LeftOpponent  Card
-	Teammate      Card
-	RightOpponent Card
-
-	Starter Player
-	Winner  Player
-}
-
-type GameState struct {
+type GameSnapshot struct {
 	Team              Team
 	OpponentTeam      Team
 	TeamScore         int
@@ -47,22 +34,17 @@ type GameState struct {
 	TeammateTricks           []Trick
 	RightOpponentTricksCount int
 
-	// Server expects this player to choose a trump when "round_started" event is sent.
+	RoundNumber   int
 	Trumper       Player
 	TrumperHasSix bool
 	Trump         Suit
 
-	RoundNumber int
+	ExpectedNextAction   string
+	ExpectedNextActionBy Player
 
 	// Gets set by server when "round_completed" event is sent.
 	RoundWinnerTeam Team
 
 	// Gets set by server when "game_completed" event is sent.
 	GameWinnerTeam Team
-
-	// When this value is non zero, server expects "move" action from a client.
-	ExpextingNextMoveBy Player
-
-	// When this set to true, server expects "trump_choice" action from a client.
-	ExpextingToChooseTrump bool
 }

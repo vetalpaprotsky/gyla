@@ -1,4 +1,4 @@
-package models
+package game
 
 import (
 	"errors"
@@ -55,7 +55,7 @@ func TestLevel(t *testing.T) {
 	for _, tt := range tests {
 		name := testutils.MethodCallName(tt.card, "level")
 		t.Run(name, func(t *testing.T) {
-			got := tt.card.Level()
+			got := tt.card.level()
 			if errMsg := testutils.TestGot(got, tt.want); errMsg != "" {
 				t.Error(errMsg)
 			}

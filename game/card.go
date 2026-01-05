@@ -1,4 +1,4 @@
-package models
+package game
 
 import (
 	"errors"
@@ -13,8 +13,8 @@ type Card struct {
 	IsTrump bool
 }
 
-func (s Suit) IsValid() bool {
-	for _, validSuit := range ValidSuits {
+func (s Suit) isValid() bool {
+	for _, validSuit := range validSuits {
 		if s == validSuit {
 			return true
 		}
@@ -23,8 +23,8 @@ func (s Suit) IsValid() bool {
 	return false
 }
 
-func (r Rank) IsValid() bool {
-	for _, validRank := range ValidRanks {
+func (r Rank) isValid() bool {
+	for _, validRank := range validRanks {
 		if r == validRank {
 			return true
 		}
@@ -34,10 +34,10 @@ func (r Rank) IsValid() bool {
 }
 
 func newCard(rank Rank, suit Suit) (Card, error) {
-	if !rank.IsValid() {
+	if !rank.isValid() {
 		return Card{}, errors.New("Invalid Rank: " + string(rank))
 	}
-	if !suit.IsValid() {
+	if !suit.isValid() {
 		return Card{}, errors.New("Invalid Suit: " + string(suit))
 	}
 
@@ -49,7 +49,7 @@ func newCard(rank Rank, suit Suit) (Card, error) {
 	return card, nil
 }
 
-func NewCardFromRankAndSuit(rankAndSuit string) (Card, error) {
+func newCardFromRankAndSuit(rankAndSuit string) (Card, error) {
 	rank := Rank(strings.ToUpper(rankAndSuit[:len(rankAndSuit)-1]))
 	suit := Suit(strings.ToUpper(rankAndSuit[len(rankAndSuit)-1:]))
 
@@ -57,63 +57,63 @@ func NewCardFromRankAndSuit(rankAndSuit string) (Card, error) {
 }
 
 func (c Card) isDefaultTrump() bool {
-	return c.Rank == SevenRank || c.Rank == JackRank
+	return c.Rank == sevenRank || c.Rank == jackRank
 }
 
-func (c Card) Level() int {
+func (c Card) level() int {
 	var level int
 
 	if c.isDefaultTrump() {
-		switch c.RankAndSuit() {
-		case string(SevenRank) + string(ClubsSuit):
+		switch c.rankAndSuit() {
+		case string(sevenRank) + string(clubsSuit):
 			level = 21
-		case string(SevenRank) + string(SpadesSuit):
+		case string(sevenRank) + string(spadesSuit):
 			level = 20
-		case string(SevenRank) + string(HeartsSuit):
+		case string(sevenRank) + string(heartsSuit):
 			level = 19
-		case string(SevenRank) + string(DiamondsSuit):
+		case string(sevenRank) + string(diamondsSuit):
 			level = 18
-		case string(JackRank) + string(ClubsSuit):
+		case string(jackRank) + string(clubsSuit):
 			level = 17
-		case string(JackRank) + string(SpadesSuit):
+		case string(jackRank) + string(spadesSuit):
 			level = 16
-		case string(JackRank) + string(HeartsSuit):
+		case string(jackRank) + string(heartsSuit):
 			level = 15
-		case string(JackRank) + string(DiamondsSuit):
+		case string(jackRank) + string(diamondsSuit):
 			level = 14
 		}
 	} else if c.IsTrump {
 		switch c.Rank {
-		case SixRank:
+		case sixRank:
 			level = 22
-		case AceRank:
+		case aceRank:
 			level = 13
-		case KingRank:
+		case kingRank:
 			level = 12
-		case QueenRank:
+		case queenRank:
 			level = 11
-		case TenRank:
+		case tenRank:
 			level = 10
-		case NineRank:
+		case nineRank:
 			level = 9
-		case EightRank:
+		case eightRank:
 			level = 8
 		}
 	} else {
 		switch c.Rank {
-		case AceRank:
+		case aceRank:
 			level = 7
-		case KingRank:
+		case kingRank:
 			level = 6
-		case QueenRank:
+		case queenRank:
 			level = 5
-		case TenRank:
+		case tenRank:
 			level = 4
-		case NineRank:
+		case nineRank:
 			level = 3
-		case EightRank:
+		case eightRank:
 			level = 2
-		case SixRank:
+		case sixRank:
 			level = 1
 		}
 	}
@@ -121,7 +121,7 @@ func (c Card) Level() int {
 	return level
 }
 
-func (c Card) RankAndSuit() string {
+func (c Card) rankAndSuit() string {
 	return string(c.Rank) + string(c.Suit)
 }
 
@@ -134,5 +134,5 @@ func (c Card) String() string {
 		suffix = "-P"
 	}
 
-	return c.RankAndSuit() + suffix
+	return c.rankAndSuit() + suffix
 }
