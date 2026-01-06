@@ -1,7 +1,7 @@
 package game
 
 const (
-	MoveAction        = "move"
+	PlayerMoveAction  = "player_move"
 	TrumpChoiceAction = "trump_choice"
 )
 
@@ -10,6 +10,11 @@ type Action struct {
 	Player Player
 	Rank   Rank
 	Suit   Suit
+}
+
+type ExpectedAction struct {
+	Name   string
+	Player Player
 }
 
 type ActionRejectedError struct {

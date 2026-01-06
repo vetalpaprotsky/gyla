@@ -1,50 +1,81 @@
 package game
 
-// Maybe a different approach is needed?
-
 type gameSnapshot struct {
 	round   round
 	score   score
 	plrsRel playersRelation
 }
 
-type GameSnapshot struct {
-	Team              Team
-	OpponentTeam      Team
-	TeamScore         int
-	OpponentTeamScore int
+func (gs gameSnapshot) getGameSnapshotFor(p Player) GameSnapshotForPlayer {
+	// TODO
 
-	Player        Player
-	LeftOpponent  Player
-	Teammate      Player
-	RightOpponent Player
+	return GameSnapshotForPlayer{}
+}
 
-	LeftOpponentBot  bool
-	TeammateBot      bool
-	RightOpponentBot bool
+// Snapshot from player point of view. It doesn't reveal non intended details,
+// like other player cards or tricks.
+type GameSnapshotForPlayer struct {
+	// Get initialized on "game_started".
+	Team              Team   // Immutable after initialization.
+	OpponentTeam      Team   // Immutable after initialization.
+	TeamScore         int    // Can change after "round_completed".
+	OpponentTeamScore int    // Can change after "round_completed".
+	Player            Player // Immutable after initialization.
+	LeftOpponent      Player // Immutable after initialization.
+	Teammate          Player // Immutable after initialization.
+	RightOpponent     Player // Immutable after initialization.
+	LeftOpponentBot   bool   // Immutable after initialization.
+	TeammateBot       bool   // Immutable after initialization.
+	RightOpponentBot  bool   // Immutable after initialization.
 
-	Cards                   []Card
-	LeftOpponentCardsCount  int
-	TeammateCardsCount      int
-	RightOpponentCardsCount int
+	// Get initialized on "round_started".
+	RoundNumber              int     // Immutable after initialization.
+	Trumper                  Player  // Immutable after initialization.
+	TrumperHasSix            bool    // Immutable after initialization.
+	Cards                    []Card  // Can change after "player_moved".
+	LeftOpponentCardsCount   int     // Can change after "player_moved".
+	TeammateCardsCount       int     // Can change after "player_moved".
+	RightOpponentCardsCount  int     // Can change after "player_moved".
+	Tricks                   []Trick // Can change after "trick_completed".
+	LeftOpponentTricksCount  int     // Can change after "trick_completed".
+	TeammateTricks           []Trick // Can change after "trick_completed".
+	RightOpponentTricksCount int     // Can change after "trick_completed".
 
-	CurrentTrick             Trick
-	Tricks                   []Trick
-	LeftOpponentTricksCount  int
-	TeammateTricks           []Trick
-	RightOpponentTricksCount int
+	// Gets initialized on "trump_chosen".
+	Trump Suit // Immutable after initialization.
 
-	RoundNumber   int
-	Trumper       Player
-	TrumperHasSix bool
-	Trump         Suit
+	// Gets initialized on "trick_started".
+	CurrentTrick Trick // Changes after "player_moved" or "trick_completed".
 
-	ExpectedNextAction   string
-	ExpectedNextActionBy Player
+	// Gets initialized on "player_moved".
+	LastMove Move // Changes after "player_moved".
 
-	// Gets set by server when "round_completed" event is sent.
-	RoundWinnerTeam Team
+	// Gets initialized on "round_completed".
+	RoundWinnerTeam Team // Immutable after initialization.
 
-	// Gets set by server when "game_completed" event is sent.
-	GameWinnerTeam Team
+	// Gets initialized on "game_completed".
+	GameWinnerTeam Team // Immutable after initialization.
+
+	// If it's set, an action is expected from a player.
+	ExpectedNextAction ExpectedAction
+}
+
+// This lifecycle gets applied only to CurrentTrick field.
+type Trick struct {
+	// Gets initialized on "trick_started".
+	Starter Player // Immutable after initialization.
+
+	// One field at a time get initialized on "player_moved".
+	Player        Card // Immutable after initialization.
+	LeftOpponent  Card // Immutable after initialization.
+	Teammate      Card // Immutable after initialization.
+	RightOpponent Card // Immutable after initialization.
+
+	// Gets initialized on "trick_completed".
+	Winner Player // Immutable after initialization.
+}
+
+type Move struct {
+	Player Player
+	Card   Card
 }

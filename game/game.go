@@ -25,29 +25,40 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
 		},
 	}
 
+	game.addEvent("game_started")
+	// Starts first round. After this call, currentRound() must never return nil.
+	game.startNextRound()
+
 	return game
 }
 
-func (g *Game) MakeAction(action Action) (ActionRejectedError, bool) {
-	if g.expectedNextAction() != action.Name {
-		// return ActionRejectedError
-	}
-
-	// TODO
+// It's going to be a complex method :D
+func (g *Game) DoAction(action Action) (ActionRejectedError, bool) {
+	// TODO: Check for expectedNextAction().
+	// TODO: if action is valid, apply it + create proper events.
+	// TODO: if trick is completed, start a new one + create proper events.
+	// TODO: if round is completed, start a new one + create proper events.
+	// TODO: if game is completed, create "game_completed" event.
+	// ...
 
 	return ActionRejectedError{}, true
 }
 
-func (g Game) expectedNextAction() string {
-	return ""
+func (g Game) GetEvent() Event {
+	// TODO: Remove event from slice.
+
+	return Event{}
 }
 
-func (g Game) getEvent() {
+func (g Game) expectedNextAction() ExpectedAction {
+	curRound := g.currentRound()
+	curTrick := curRound.currentTrick()
 
-}
+	if curRound.number == 1 && curTrick == nil {
+		return ExpectedAction{"trump_choice", curRound.starter}
+	}
 
-func (g Game) getState() {
-
+	return ExpectedAction{}
 }
 
 func (g Game) currentRound() *round {
@@ -55,17 +66,17 @@ func (g Game) currentRound() *round {
 		return nil
 	}
 
-	curRound := &g.rounds[0]
+	round := &g.rounds[0]
 	for i := 1; i < len(g.rounds); i++ {
-		if g.rounds[i].number > curRound.number {
-			curRound = &g.rounds[i]
+		if g.rounds[i].number > round.number {
+			round = &g.rounds[i]
 		}
 	}
 
-	return curRound
+	return round
 }
 
-func (g *Game) startNextRound() (*round, error) {
+func (g *Game) startNextRound() {
 	var round round
 	var err error
 
@@ -76,14 +87,35 @@ func (g *Game) startNextRound() (*round, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	g.rounds = append(g.rounds, round)
-
-	return &g.rounds[len(g.rounds)-1], nil
+	g.addEvent("round_started")
 }
 
-func (g Game) score() score {
-	return newScore(g)
+func (g *Game) startNextTrick() {
+	if err := g.currentRound().startNextTrick(); err != nil {
+		panic(err)
+	}
+
+	g.addEvent("trick_started")
+}
+
+func (g *Game) addEvent(name string) {
+	g.events = append(g.events, Event{name, g.createSnapshot()})
+}
+
+func (g Game) createSnapshot() gameSnapshot {
+	curRound := g.currentRound()
+
+	if curRound == nil {
+		return gameSnapshot{plrsRel: g.plrsRel}
+	}
+
+	return gameSnapshot{
+		round:   curRound.deepCopy(),
+		score:   newScore(g),
+		plrsRel: g.plrsRel,
+	}
 }

@@ -39,14 +39,14 @@ func (r round) deepCopy() round {
 // start the next round. One player can't choose trumps always.
 func newRound(curRound round) (round, error) {
 	if curRound.number >= maxPossibleNumberOfRounds {
-		// NOTE: This is note expected error. Panic?
+		// This is unexpected error.
 		msg := "Max possible number of rounds started. Can't start a new one."
 		return round{}, errors.New(msg)
 	}
 
 	winTeam, winTeamOk := curRound.winTeam()
 	if !winTeamOk {
-		// NOTE: This is note expected error. Panic?
+		// This is unexpected error.
 		msg := "Current round doesn't have a win team. Can't start a new one."
 		return round{}, errors.New(msg)
 	}
@@ -78,7 +78,7 @@ func newFirstRound(pr playersRelation) round {
 	return round
 }
 
-func (r *round) startNextTrick() (*trick, error) {
+func (r *round) startNextTrick() error {
 	var trick trick
 	var err error
 
@@ -89,12 +89,12 @@ func (r *round) startNextTrick() (*trick, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	r.tricks = append(r.tricks, trick)
 
-	return &r.tricks[len(r.tricks)-1], nil
+	return nil
 }
 
 func (r *round) assignTrump(suit Suit) error {

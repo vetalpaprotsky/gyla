@@ -6,15 +6,6 @@ import (
 	"maps"
 )
 
-type Trick struct {
-	Player        Card
-	LeftOpponent  Card
-	Teammate      Card
-	RightOpponent Card
-	Starter       Player
-	Winner        Player
-}
-
 type trick struct {
 	number  int
 	starter Player
