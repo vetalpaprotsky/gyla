@@ -5,7 +5,7 @@ package game
 // It shoud have simple methods like startNextRound()
 // startNextTrick(), isTrickCompleted(), isRoundCompleted(),
 // isMatchCompleted(), assignTrumpForRound(), playCard(), ...
-type Match struct {
+type match struct {
 	rounds  []round
 	plrsRel playersRelation
 }

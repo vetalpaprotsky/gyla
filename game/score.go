@@ -11,13 +11,13 @@ type score struct {
 
 // TODO: When loser team has no tricks, or has one trick, the number of added
 // points must be different.
-func newScore(g Match) score {
+func newScore(m match) score {
 	score := score{
-		team1: g.plrsRel.team1,
-		team2: g.plrsRel.team2,
+		team1: m.plrsRel.team1,
+		team2: m.plrsRel.team2,
 	}
 
-	for _, round := range g.rounds {
+	for _, round := range m.rounds {
 		winTeam, winTeamOk := round.winTeam()
 		if !winTeamOk {
 			continue
