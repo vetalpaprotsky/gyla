@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -35,10 +34,10 @@ func (r Rank) isValid() bool {
 
 func newCard(rank Rank, suit Suit) (Card, error) {
 	if !rank.isValid() {
-		return Card{}, errors.New("Invalid Rank: " + string(rank))
+		return Card{}, newInvalidRankError(rank)
 	}
 	if !suit.isValid() {
-		return Card{}, errors.New("Invalid Suit: " + string(suit))
+		return Card{}, newInvalidSuitError(suit)
 	}
 
 	card := Card{Rank: rank, Suit: suit}

@@ -1,8 +1,6 @@
 package game
 
 import (
-	"errors"
-	"fmt"
 	"maps"
 )
 
@@ -26,17 +24,14 @@ func newFirstTrick(starter Player, plrsRel playersRelation) trick {
 	return trick{number: 1, starter: starter, plrsRel: plrsRel, cards: make(map[Player]Card)}
 }
 
-// NOTE: All these errors are NOT meant to be retriable.
 func newTrick(curTrick trick) (trick, error) {
 	if curTrick.number >= tricksPerRoundCount {
-		msg := "Max possible tricks per round started. Can't start a new one."
-		return trick{}, errors.New(msg)
+		return trick{}, newTooManyTricksPerRoundError()
 	}
 
 	winner, winnerOk := curTrick.winner()
 	if !winnerOk {
-		msg := "Current trick winner isn't determined. Can't start a new one."
-		return trick{}, errors.New(msg)
+		return trick{}, newNoTrickWinnerError()
 	}
 
 	return trick{
@@ -47,30 +42,15 @@ func newTrick(curTrick trick) (trick, error) {
 	}, nil
 }
 
-// NOTE: All these errors are meant to be retriable.
 func (t *trick) addCard(player Player, card Card) error {
-	var errMsg string
-
 	if t.isCompleted() {
-		errMsg = "Trick is completed. Can't add a new card to it."
+		return newTrickCompletedError()
 	} else if !t.isPlayerValid(player) {
-		errMsg = fmt.Sprintf("Player <%s> is invalid.", player)
+		return newInvalidPlayerError(player)
 	} else if t.playerAlreadyAddedCard(player) {
-		errMsg = fmt.Sprintf(
-			"Player <%s> already added card <%s> to a trick.",
-			player,
-			t.cards[player],
-		)
-	} else if t.expectedNextPlayer() != player {
-		errMsg = fmt.Sprintf(
-			"Player <%s> is expected to add the next card to a trick, not <%s>.",
-			t.expectedNextPlayer(),
-			player,
-		)
-	}
-
-	if errMsg != "" {
-		return errors.New(errMsg)
+		return newDuplicatedPlayerMoveError(player, t.cards[player])
+	} else if expPlr := t.expectedNextPlayer(); expPlr != player {
+		return newUnexpectedPlayerMoveError(player, expPlr)
 	}
 
 	t.cards[player] = card

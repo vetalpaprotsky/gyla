@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"gyla/testutils"
 	"testing"
 )
@@ -17,8 +16,8 @@ func TestNewCard(t *testing.T) {
 		{"K", "S", Card{Rank: "K", Suit: "S", IsTrump: false}, nil},
 		{"7", "C", Card{Rank: "7", Suit: "C", IsTrump: true}, nil},
 		{"J", "D", Card{Rank: "J", Suit: "D", IsTrump: true}, nil},
-		{"5", "S", Card{}, errors.New("Invalid Rank: 5")},
-		{"Q", "K", Card{}, errors.New("Invalid Suit: K")},
+		{"5", "S", Card{}, newInvalidRankError(Rank("5"))},
+		{"Q", "K", Card{}, newInvalidSuitError(Suit("5"))},
 	}
 
 	for _, tt := range tests {

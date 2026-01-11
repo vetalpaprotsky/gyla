@@ -17,7 +17,7 @@ type ExpectedAction struct {
 	Player Player
 }
 
-type ActionRejectedError struct {
-	Action Action
-	Msg    string
+type ActionResult struct {
+	ErrorMsg  string
+	Succeeded bool
 }

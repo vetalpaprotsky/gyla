@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -39,16 +38,12 @@ func (r round) deepCopy() round {
 // start the next round. One player can't choose trumps always.
 func newRound(curRound round) (round, error) {
 	if curRound.number >= maxPossibleNumberOfRounds {
-		// This is unexpected error.
-		msg := "Max possible number of rounds started. Can't start a new one."
-		return round{}, errors.New(msg)
+		return round{}, newTooManyRoundsPerGameError()
 	}
 
 	winTeam, winTeamOk := curRound.winTeam()
 	if !winTeamOk {
-		// This is unexpected error.
-		msg := "Current round doesn't have a win team. Can't start a new one."
-		return round{}, errors.New(msg)
+		return round{}, newNoRoundWinTeamError()
 	}
 
 	round := round{
@@ -97,31 +92,29 @@ func (r *round) startNextTrick() error {
 	return nil
 }
 
-func (r *round) assignTrump(suit Suit) error {
+func (r *round) assignTrump(trump Suit, player Player) error {
 	if r.trump != "" {
-		errorMsg := fmt.Sprintf(
-			"Can't assign <%s> trump, it's already assigned to <%s>.",
-			suit,
-			r.trump,
-		)
-		return errors.New(errorMsg)
+		return newDuplicatedTrumpAssignmentError(trump, r.trump)
 	}
 
 	trumpIsValid := false
 	for _, validSuit := range validSuits {
-		if suit == validSuit {
+		if trump == validSuit {
 			trumpIsValid = true
 		}
 	}
 	if !trumpIsValid {
-		msg := fmt.Sprintf("Trump <%s> is invalid, can't assign it.", suit)
-		return errors.New(msg)
+		return newInvalidTrumpError(trump)
 	}
 
-	r.trump = suit
+	if player != r.starter {
+		return newUnexpectedTrumperError(player, r.starter)
+	}
+
+	r.trump = trump
 	for _, h := range r.hands {
 		for i, c := range h.cards {
-			if c.Suit == suit {
+			if c.Suit == trump {
 				h.cards[i].IsTrump = true
 			}
 		}
@@ -130,23 +123,20 @@ func (r *round) assignTrump(suit Suit) error {
 	return nil
 }
 
-func (r *round) makeMove(player Player, card Card) error {
+func (r *round) makeMove(player Player, rank Rank, suit Suit) error {
 	trick := r.currentTrick()
 	if trick == nil {
-		return errors.New("No current trick. Can't make move.")
+		return newNoCurrentTrickError()
 	}
 
 	hand := r.getHand(player)
 	if hand == nil {
-		msg := fmt.Sprintf("Player <%s> hand isn't found. Can't make move.", player)
-		return errors.New(msg)
+		return newHandNotFoundError(player)
 	}
 
+	card := hand.getCard(rank, suit)
 	if !hand.canMakeMove(card, *trick) {
-		msg := fmt.Sprintf(
-			"Player <%s> can't make a move with <%s> card.", player, card,
-		)
-		return errors.New(msg)
+		return newInvalidCardForMoveError(player, card)
 	}
 
 	if err := trick.addCard(player, card); err != nil {

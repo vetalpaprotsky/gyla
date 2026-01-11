@@ -16,14 +16,14 @@ func (h hand) deepCopy() hand {
 	}
 }
 
-func (h *hand) removeCard(cardToRemove Card) bool {
-	if !slices.Contains(h.cards, cardToRemove) {
+func (h *hand) removeCard(card Card) bool {
+	if !slices.Contains(h.cards, card) {
 		return false
 	}
 
 	newCards := make([]Card, 0, len(h.cards)-1)
 	for _, c := range h.cards {
-		if c != cardToRemove {
+		if c != card {
 			newCards = append(newCards, c)
 		}
 	}
@@ -31,6 +31,16 @@ func (h *hand) removeCard(cardToRemove Card) bool {
 	h.cards = newCards
 
 	return true
+}
+
+func (h hand) getCard(rank Rank, suit Suit) Card {
+	for _, c := range h.cards {
+		if c.Rank == rank && c.Suit == suit {
+			return c
+		}
+	}
+
+	return Card{}
 }
 
 func (h hand) availableCardsForMove(trick trick) []Card {
@@ -62,8 +72,8 @@ func (h hand) availableCardsForMove(trick trick) []Card {
 	}
 }
 
-func (h hand) canMakeMove(cardToPlay Card, trick trick) bool {
-	return slices.Contains(h.availableCardsForMove(trick), cardToPlay)
+func (h hand) canMakeMove(card Card, trick trick) bool {
+	return slices.Contains(h.availableCardsForMove(trick), card)
 }
 
 func (h hand) trumps() []Card {
