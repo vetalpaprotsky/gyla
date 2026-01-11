@@ -35,10 +35,10 @@ func (r round) deepCopy() round {
 }
 
 // TODO: When score of the starter team goes over 30, then their teammate must
-// start the next round. One player can't choose trumps always.
+// start the next round. One player can't assign trumps always.
 func newRound(curRound round) (round, error) {
 	if curRound.number >= maxPossibleNumberOfRounds {
-		return round{}, newTooManyRoundsPerGameError()
+		return round{}, newTooManyRoundsPerMatchError()
 	}
 
 	winTeam, winTeamOk := curRound.winTeam()
@@ -94,7 +94,7 @@ func (r *round) startNextTrick() error {
 
 func (r *round) assignTrump(trump Suit, player Player) error {
 	if r.trump != "" {
-		return newDuplicatedTrumpAssignmentError(trump, r.trump)
+		return newRepeatedTrumpAssignmentError(trump, r.trump)
 	}
 
 	trumpIsValid := false
@@ -123,7 +123,7 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 	return nil
 }
 
-func (r *round) makeMove(player Player, rank Rank, suit Suit) error {
+func (r *round) playCard(player Player, rank Rank, suit Suit) error {
 	trick := r.currentTrick()
 	if trick == nil {
 		return newNoCurrentTrickError()
@@ -135,8 +135,8 @@ func (r *round) makeMove(player Player, rank Rank, suit Suit) error {
 	}
 
 	card := hand.getCard(rank, suit)
-	if !hand.canMakeMove(card, *trick) {
-		return newInvalidCardForMoveError(player, card)
+	if !hand.canPlayCard(card, *trick) {
+		return newInvalidCardForPlayError(player, card)
 	}
 
 	if err := trick.addCard(player, card); err != nil {
@@ -144,7 +144,7 @@ func (r *round) makeMove(player Player, rank Rank, suit Suit) error {
 	}
 
 	if ok := hand.removeCard(card); !ok {
-		panic("Could not remove card from a hand when making a move.")
+		panic("Could not remove card from a hand.")
 	}
 
 	return nil
@@ -195,11 +195,11 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 	return Player(""), false
 }
 
-func (r round) availableCardsForMove(player Player) []Card {
+func (r round) playableCardsFor(player Player) []Card {
 	trick := *r.currentTrick()
 	hand := r.getHand(player)
 
-	return hand.availableCardsForMove(trick)
+	return hand.playableCardsFor(trick)
 }
 
 func (r round) isCompleted() bool {

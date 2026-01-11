@@ -43,8 +43,8 @@ func (h hand) getCard(rank Rank, suit Suit) Card {
 	return Card{}
 }
 
-func (h hand) availableCardsForMove(trick trick) []Card {
-	// First move in a trick, any card works.
+func (h hand) playableCardsFor(trick trick) []Card {
+	// First card in a trick, any card works.
 	if trick.isEmpty() {
 		return h.cards
 	}
@@ -72,8 +72,8 @@ func (h hand) availableCardsForMove(trick trick) []Card {
 	}
 }
 
-func (h hand) canMakeMove(card Card, trick trick) bool {
-	return slices.Contains(h.availableCardsForMove(trick), card)
+func (h hand) canPlayCard(card Card, trick trick) bool {
+	return slices.Contains(h.playableCardsFor(trick), card)
 }
 
 func (h hand) trumps() []Card {

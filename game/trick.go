@@ -45,12 +45,8 @@ func newTrick(curTrick trick) (trick, error) {
 func (t *trick) addCard(player Player, card Card) error {
 	if t.isCompleted() {
 		return newTrickCompletedError()
-	} else if !t.isPlayerValid(player) {
-		return newInvalidPlayerError(player)
-	} else if t.playerAlreadyAddedCard(player) {
-		return newDuplicatedPlayerMoveError(player, t.cards[player])
 	} else if expPlr := t.expectedNextPlayer(); expPlr != player {
-		return newUnexpectedPlayerMoveError(player, expPlr)
+		return newUnexpectedPlayerError(player, expPlr)
 	}
 
 	t.cards[player] = card
@@ -103,12 +99,6 @@ func (t trick) hasAnyTrumps() bool {
 
 func (t trick) isPlayerValid(p Player) bool {
 	return t.plrsRel.isPlayerValid(p)
-}
-
-func (t trick) playerAlreadyAddedCard(p Player) bool {
-	_, ok := t.cards[p]
-
-	return ok
 }
 
 func (t trick) isEmpty() bool {

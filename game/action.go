@@ -1,8 +1,8 @@
 package game
 
 const (
-	PlayerMoveAction  = "player_move"
-	TrumpChoiceAction = "trump_choice"
+	PlayCardAction    = "play_card"
+	AssignTrumpAction = "assign_trump"
 )
 
 type Action struct {

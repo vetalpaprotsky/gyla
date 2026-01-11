@@ -1,5 +1,7 @@
 package game
 
+// TODO: We could store every round history here.
+// We might even want to rename this to matchStats?
 type score struct {
 	team1   Team
 	points1 int
@@ -9,7 +11,7 @@ type score struct {
 
 // TODO: When loser team has no tricks, or has one trick, the number of added
 // points must be different.
-func newScore(g Game) score {
+func newScore(g Match) score {
 	score := score{
 		team1: g.plrsRel.team1,
 		team2: g.plrsRel.team2,
@@ -36,12 +38,12 @@ func newScore(g Game) score {
 	return score
 }
 
-func (s score) isGameCompleted() bool {
+func (s score) isMatchCompleted() bool {
 	return s.points1 >= 60 || s.points2 >= 60
 }
 
 func (s score) winTeam() Team {
-	if !s.isGameCompleted() {
+	if !s.isMatchCompleted() {
 		return Team("")
 	}
 
