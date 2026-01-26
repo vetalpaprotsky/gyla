@@ -85,20 +85,17 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 
 	g.addEvent(cardPlayedEvent)
 
-	if g.match.isCurrentTrickCompleted() {
+	if g.match.isMatchCompleted {
 		g.addEvent(trickCompletedEvent)
-
-		if g.match.isCurrentRoundCompleted() {
-			g.addEvent(roundCompletedEvent)
-
-			if g.match.isMatchCompleted {
-				g.addEvent(matchCompletedEvent)
-			} else {
-				g.startNextRound()
-			}
-		} else {
-			g.startNextTrick()
-		}
+		g.addEvent(roundCompletedEvent)
+		g.addEvent(matchCompletedEvent)
+	} else if g.match.isCurrentRoundCompleted() {
+		g.addEvent(trickCompletedEvent)
+		g.addEvent(roundCompletedEvent)
+		g.startNextRound()
+	} else if g.match.isCurrentTrickCompleted() {
+		g.addEvent(trickCompletedEvent)
+		g.startNextTrick()
 	}
 
 	return nil
