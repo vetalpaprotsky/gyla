@@ -88,7 +88,6 @@ func (r *round) startNextTrick() error {
 	}
 
 	r.tricks = append(r.tricks, trick)
-
 	return nil
 }
 
@@ -123,7 +122,7 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 	return nil
 }
 
-func (r *round) playCard(player Player, rank Rank, suit Suit) error {
+func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 	trick := r.currentTrick()
 	if trick == nil {
 		return newNoCurrentTrickError()

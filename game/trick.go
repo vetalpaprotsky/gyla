@@ -44,7 +44,7 @@ func newTrick(curTrick trick) (trick, error) {
 
 func (t *trick) addCard(player Player, card Card) error {
 	if t.isCompleted() {
-		return newTrickCompletedError()
+		return newTooManyCardsPerTrickError()
 	} else if expPlr := t.expectedNextPlayer(); expPlr != player {
 		return newUnexpectedPlayerError(player, expPlr)
 	}
