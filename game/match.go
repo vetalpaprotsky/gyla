@@ -1,7 +1,14 @@
 package game
 
-// TODO: Knows nothing about events or actions.
-// Basically it works like Game struct used to work.
+// Lifecycle:
+// 1. Start next round.
+// 2. Assign trump.
+// 3. Start next trick.
+// 4. Play card.
+// 5. If current trick isn't completed, go to step 4.
+// 6. If current round isn't completed, go to step 3.
+// 7. If match isn't completed, go to step 1.
+// 8. Match is completed.
 type match struct {
 	rounds           []round
 	plrsRel          playersRelation
@@ -125,18 +132,4 @@ func (m match) isCurrentRoundCompleted() bool {
 	}
 
 	return curRound.isCompleted()
-}
-
-func (m match) createSnapshot() matchSnapshot {
-	curRound := m.currentRound()
-
-	if curRound == nil {
-		return matchSnapshot{plrsRel: m.plrsRel}
-	}
-
-	return matchSnapshot{
-		round:   curRound.deepCopy(),
-		score:   newScore(m),
-		plrsRel: m.plrsRel,
-	}
 }

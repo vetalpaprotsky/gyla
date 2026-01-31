@@ -28,10 +28,10 @@ const (
 )
 
 type Event struct {
-	Name          string
-	matchSnapshot matchSnapshot
+	Name         string
+	gameSnapshot gameSnapshot
 }
 
-func (e Event) getMatchSnapshotFor(p Player) MatchSnapshotForPlayer {
-	return e.matchSnapshot.getMatchSnapshotFor(p)
+func (e Event) getGameSnapshotFor(p Player) GameSnapshotForPlayer {
+	return e.gameSnapshot.getGameSnapshotFor(p)
 }

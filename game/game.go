@@ -6,6 +6,7 @@ import (
 
 type Game struct {
 	match  match
+	bots   map[Player]bool
 	events []Event
 }
 
@@ -38,6 +39,70 @@ func (g *Game) StartMatch() {
 	g.startNextRound()
 }
 
+func (g Game) GetEvent() Event {
+	// TODO: Remove event from slice.
+
+	return Event{}
+}
+
+func (g *Game) DoPlayerAction(action Action) ActionResult {
+	expAct := g.expectedAction()
+	if expAct.Name == "" {
+		return ActionResult{Succeeded: false, ErrorMsg: "No action is expected."}
+	}
+
+	if g.bots[expAct.Player] {
+		return ActionResult{Succeeded: false, ErrorMsg: "Bot action is expected."}
+	}
+
+	if expAct.Name != action.Name || expAct.Player != action.Player {
+		msg := fmt.Sprintf(
+			"Unexpected action. <%s> action is expected from <%s> player.",
+			expAct.Name, expAct.Player,
+		)
+		return ActionResult{Succeeded: false, ErrorMsg: msg}
+	}
+
+	return g.doAction(action)
+}
+
+func (g *Game) DoBotAction() bool {
+	expAct := g.expectedAction()
+	if expAct.Name == "" || !g.bots[expAct.Player] {
+		return false
+	}
+
+	action := Bot{player: expAct.Player, match: g.match}.getAction(expAct.Name)
+	actRes := g.doAction(action)
+	if !actRes.Succeeded {
+		msg := fmt.Sprintf(
+			"<%s> bot action <%s> failed. Error <%s>",
+			expAct.Player, expAct.Name, actRes.ErrorMsg,
+		)
+		panic(msg)
+	}
+
+	return true
+}
+
+func (g *Game) doAction(action Action) ActionResult {
+	var err error
+	switch action.Name {
+	case AssignTrumpAction:
+		err = g.assignTrumpForCurrentRound(action.Suit, action.Player)
+	case PlayCardAction:
+		err = g.playCard(action.Rank, action.Suit, action.Player)
+	default:
+		panic(fmt.Sprintf("Unexpected action <%s>.", action.Name))
+	}
+
+	if err == nil {
+		return ActionResult{Succeeded: true}
+	} else {
+		return ActionResult{Succeeded: false, ErrorMsg: err.Error()}
+	}
+}
+
 func (g *Game) startNextRound() {
 	if err := g.match.startNextRound(); err != nil {
 		panic(err)
@@ -54,8 +119,6 @@ func (g *Game) startNextTrick() {
 	g.addEvent(trickStartedEvent)
 }
 
-// TODO: Let's retry only possible errors, the ones that could be introduced
-// by invalid method params. Other - panic.
 func (g *Game) assignTrumpForCurrentRound(suit Suit, player Player) error {
 	if err := g.match.assignTrumpForCurrentRound(suit, player); err != nil {
 		switch err.(matchError).error_type {
@@ -71,12 +134,10 @@ func (g *Game) assignTrumpForCurrentRound(suit Suit, player Player) error {
 	return nil
 }
 
-// TODO: Let's retry only possible errors, the ones that could be introduced
-// by invalid method params. Other - panic.
 func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	if err := g.match.playCard(rank, suit, player); err != nil {
 		switch err.(matchError).error_type {
-		case noCurrentRoundError, noCurrentTrickError, tooManyCardsPerTrickError:
+		case noCurrentRoundError, noCurrentTrickError:
 			panic(err)
 		default:
 			return err
@@ -84,7 +145,6 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	}
 
 	g.addEvent(cardPlayedEvent)
-
 	if g.match.isMatchCompleted {
 		g.addEvent(trickCompletedEvent)
 		g.addEvent(roundCompletedEvent)
@@ -101,56 +161,40 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	return nil
 }
 
-func (g *Game) DoAction(action Action) ActionResult {
-	expAct := g.expectedNextAction()
-	if expAct.Name == "" {
-		return ActionResult{Succeeded: false, ErrorMsg: "No action is expected."}
-	}
+func (g *Game) addEvent(name string) {
+	g.events = append(g.events, Event{name, g.createSnapshot()})
+}
 
-	if expAct.Name != action.Name || expAct.Player != action.Player {
-		msg := fmt.Sprintf(
-			"Unexpected action. <%s> action is expected from <%s> player.",
-			expAct.Name, expAct.Player,
-		)
-		return ActionResult{
-			ErrorMsg:  msg,
-			Succeeded: false,
+func (g Game) createSnapshot() gameSnapshot {
+	match := g.match
+	curRound := g.match.currentRound()
+
+	if curRound == nil {
+		return gameSnapshot{
+			plrsRel:        match.plrsRel,
+			bots:           g.bots,
+			expectedAction: g.expectedAction(),
 		}
 	}
 
-	var err error
-	switch action.Name {
-	case AssignTrumpAction:
-		err = g.assignTrumpForCurrentRound(action.Suit, action.Player)
-	case PlayCardAction:
-		err = g.playCard(action.Rank, action.Suit, action.Player)
-	default:
-		panic(fmt.Sprintf("Unexpected action <%s>", action.Name))
-	}
-
-	if err == nil {
-		return ActionResult{Succeeded: true}
-	} else {
-		return ActionResult{Succeeded: false, ErrorMsg: err.Error()}
+	return gameSnapshot{
+		curRound:       curRound.deepCopy(),
+		score:          newScore(match),
+		plrsRel:        match.plrsRel,
+		bots:           g.bots,
+		expectedAction: g.expectedAction(),
 	}
 }
 
-func (g Game) GetEvent() Event {
-	// TODO: Remove event from slice.
-
-	return Event{}
-}
-
-func (g *Game) addEvent(name string) {
-	g.events = append(g.events, Event{name, g.match.createSnapshot()})
-}
-
-// TODO: Use match methods, like m.currentRound()
-func (g Game) expectedNextAction() ExpectedAction {
+func (g Game) expectedAction() ExpectedAction {
 	curRound := g.match.currentRound()
-	curTrick := curRound.currentTrick()
 
-	if curRound.number == 1 && curTrick == nil {
+	if curRound == nil {
+		return ExpectedAction{}
+	}
+
+	curTrick := g.match.currentTrick()
+	if curTrick == nil {
 		return ExpectedAction{AssignTrumpAction, curRound.starter}
 	}
 

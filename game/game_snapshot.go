@@ -1,21 +1,22 @@
 package game
 
-type matchSnapshot struct {
-	// RENAME: currentRound
-	round   round
-	score   score
-	plrsRel playersRelation
+type gameSnapshot struct {
+	curRound       round
+	score          score
+	plrsRel        playersRelation
+	bots           map[Player]bool
+	expectedAction ExpectedAction
 }
 
-func (gs matchSnapshot) getMatchSnapshotFor(p Player) MatchSnapshotForPlayer {
+func (gs gameSnapshot) getGameSnapshotFor(p Player) GameSnapshotForPlayer {
 	// TODO
 
-	return MatchSnapshotForPlayer{}
+	return GameSnapshotForPlayer{}
 }
 
 // Snapshot from player point of view. It doesn't reveal non intended details,
 // like other player cards or tricks.
-type MatchSnapshotForPlayer struct {
+type GameSnapshotForPlayer struct {
 	// Get initialized on "match_started".
 	Team              Team
 	OpponentTeam      Team
@@ -55,7 +56,7 @@ type MatchSnapshotForPlayer struct {
 	MatchWinnerTeam Team
 
 	// If it's set, an action is expected from a player.
-	ExpectedNextAction ExpectedAction
+	ExpectedAction ExpectedAction
 }
 
 // This lifecycle gets applied only to CurrentTrick field.
