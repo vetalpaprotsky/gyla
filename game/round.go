@@ -67,7 +67,7 @@ func newFirstRound(pr playersRelation) round {
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
 	} else {
-		panic("Player with nine of diamonds isn't found.")
+		panic("player with nine of diamonds not found")
 	}
 
 	return round
@@ -143,7 +143,7 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 	}
 
 	if ok := hand.removeCard(card); !ok {
-		panic("Could not remove card from a hand.")
+		panic("could not remove card from hand")
 	}
 
 	return nil
@@ -237,7 +237,7 @@ func (r round) winTeam() (Team, bool) {
 			opponentTeamTricks += 1
 		default:
 			msg := fmt.Sprintf(
-				"Team <%s> with Player <%s> doesn't exist.",
+				"team %s with player %s does not exist",
 				winner,
 				winnerTeam,
 			)
@@ -250,7 +250,7 @@ func (r round) winTeam() (Team, bool) {
 	} else if starterTeamTricks < opponentTeamTricks {
 		return opponentTeam, true
 	} else {
-		panic("Draw in a round. Impossible case.")
+		panic("draw in round: impossible case")
 	}
 }
 
@@ -258,7 +258,7 @@ func (r round) starterTeam() Team {
 	t := r.plrsRel.getTeam(r.starter)
 
 	if t == Team("") {
-		panic(fmt.Sprintf("Starter player <%s> team is missing.", r.starter))
+		panic(fmt.Sprintf("starter player %s team is missing", r.starter))
 	}
 
 	return t
@@ -268,7 +268,7 @@ func (r round) starterOpponentTeam() Team {
 	t := r.plrsRel.getOpponentTeam(r.starter)
 
 	if t == Team("") {
-		panic(fmt.Sprintf("Starter player <%s> opponent team is missing.", r.starter))
+		panic(fmt.Sprintf("starter player %s opponent team is missing", r.starter))
 	}
 
 	return r.plrsRel.getOpponentTeam(r.starter)
@@ -278,7 +278,7 @@ func (r round) starterLeftOpponent() Player {
 	opponent := r.plrsRel.getLeftOpponent(r.starter)
 
 	if opponent == Player("") {
-		panic(fmt.Sprintf("Starter player <%s> left opponent is missing.", r.starter))
+		panic(fmt.Sprintf("starter player %s left opponent is missing", r.starter))
 	}
 
 	return opponent

@@ -17,7 +17,7 @@ func TestNewCard(t *testing.T) {
 		{"7", "C", Card{Rank: "7", Suit: "C", IsTrump: true}, nil},
 		{"J", "D", Card{Rank: "J", Suit: "D", IsTrump: true}, nil},
 		{"5", "S", Card{}, newInvalidRankError(Rank("5"))},
-		{"Q", "K", Card{}, newInvalidSuitError(Suit("5"))},
+		{"Q", "K", Card{}, newInvalidSuitError(Suit("K"))},
 	}
 
 	for _, tt := range tests {

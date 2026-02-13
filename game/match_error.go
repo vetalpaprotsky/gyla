@@ -35,67 +35,67 @@ func (me matchError) Error() string {
 }
 
 func newNoCurrentTrickError() matchError {
-	return matchError{noCurrentTrickError, "current trick isn't present."}
+	return matchError{noCurrentTrickError, "current trick not present"}
 }
 
 func newNoCurrentRoundError() matchError {
-	return matchError{noCurrentRoundError, "current round isn't present."}
+	return matchError{noCurrentRoundError, "current round not present"}
 }
 
 func newNoTrickWinnerError() matchError {
 	return matchError{
-		noTrickWinnerError, "Trick has no winner.",
+		noTrickWinnerError, "trick has no winner",
 	}
 }
 
 func newNoRoundWinTeamError() matchError {
 	return matchError{
-		noRoundWinTeamError, "Round has no win team.",
+		noRoundWinTeamError, "round has no winning team",
 	}
 }
 
 func newTooManyCardsPerTrickError() matchError {
 	return matchError{
-		tooManyCardsPerTrickError, "Too many cards per trick.",
+		tooManyCardsPerTrickError, "too many cards per trick",
 	}
 }
 
 func newTooManyTricksPerRoundError() matchError {
 	return matchError{
-		tooManyTricksPerRoundError, "Too many tricks per round.",
+		tooManyTricksPerRoundError, "too many tricks per round",
 	}
 }
 
 func newTooManyRoundsPerMatchError() matchError {
 	return matchError{
-		tooManyRoundsPerMatchError, "Too many rounds per match.",
+		tooManyRoundsPerMatchError, "too many rounds per match",
 	}
 }
 
 func newInvalidRankError(rank Rank) matchError {
 	return matchError{
 		invalidRankError,
-		fmt.Sprintf("Rank <%s> is invalid.", rank),
+		fmt.Sprintf("rank %s is invalid", rank),
 	}
 }
 
 func newInvalidSuitError(suit Suit) matchError {
 	return matchError{
 		invalidSuitError,
-		fmt.Sprintf("Suit <%s> is invalid.", suit),
+		fmt.Sprintf("suit %s is invalid", suit),
 	}
 }
 
 func newHandNotFoundError(player Player) matchError {
 	return matchError{
-		handNotFoundError, fmt.Sprintf("Player <%s> hand isn't found.", player),
+		handNotFoundError, fmt.Sprintf("player %s hand not found", player),
 	}
 }
 
 func newInvalidCardForPlayError(player Player, card Card) matchError {
 	return matchError{
 		invalidCardForPlayError,
-		fmt.Sprintf("Player <%s> can't play with <%s> card.", player, card),
+		fmt.Sprintf("player %s cannot play card %s", player, card),
 	}
 }
 
@@ -103,7 +103,7 @@ func newUnexpectedPlayerError(actual Player, expected Player) matchError {
 	return matchError{
 		unexpectedPlayerError,
 		fmt.Sprintf(
-			"Player <%s> is expected to play a card, not <%s>.", expected, actual,
+			"expected player %s to play, not %s", expected, actual,
 		),
 	}
 }
@@ -112,7 +112,7 @@ func newRepeatedTrumpAssignmentError(trump Suit, currentTrump Suit) matchError {
 	return matchError{
 		repeatedTrumpAssignmentError,
 		fmt.Sprintf(
-			"Can't assign <%s> trump, it's already assigned to <%s>.",
+			"cannot assign trump %s: already assigned to %s",
 			trump, currentTrump,
 		),
 	}
@@ -121,7 +121,7 @@ func newRepeatedTrumpAssignmentError(trump Suit, currentTrump Suit) matchError {
 func newInvalidTrumpError(trump Suit) matchError {
 	return matchError{
 		invalidTrumpError,
-		fmt.Sprintf("Trump <%s> is invalid, can't assign it.", trump),
+		fmt.Sprintf("trump %s is invalid", trump),
 	}
 }
 
@@ -129,13 +129,13 @@ func newUnexpectedTrumperError(actual Player, expected Player) matchError {
 	return matchError{
 		unexpectedTrumperError,
 		fmt.Sprintf(
-			"<%s> can't assign trump. <%s> must do it", actual, expected,
+			"%s cannot assign trump: %s must do it", actual, expected,
 		),
 	}
 }
 
 func newMatchCompletedError() matchError {
 	return matchError{
-		matchCompletedError, "Match is completed.",
+		matchCompletedError, "match is completed",
 	}
 }

@@ -37,6 +37,7 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
 func (g *Game) StartMatch() {
 	g.addEvent(matchStartedEvent)
 	g.startNextRound()
+	g.doActionsByBots()
 }
 
 func (g Game) GetEvent() Event {
@@ -45,44 +46,30 @@ func (g Game) GetEvent() Event {
 	return Event{}
 }
 
-func (g *Game) DoPlayerAction(action Action) ActionResult {
+func (g *Game) DoAction(action Action) ActionResult {
 	expAct := g.expectedAction()
 	if expAct.Name == "" {
-		return ActionResult{Succeeded: false, ErrorMsg: "No action is expected."}
+		return ActionResult{Succeeded: false, ErrorMsg: "no action expected"}
 	}
 
 	if g.bots[expAct.Player] {
-		return ActionResult{Succeeded: false, ErrorMsg: "Bot action is expected."}
+		panic("bot action wasn't done")
 	}
 
 	if expAct.Name != action.Name || expAct.Player != action.Player {
 		msg := fmt.Sprintf(
-			"Unexpected action. <%s> action is expected from <%s> player.",
+			"unexpected action: expected %s action from player %s",
 			expAct.Name, expAct.Player,
 		)
 		return ActionResult{Succeeded: false, ErrorMsg: msg}
 	}
 
-	return g.doAction(action)
-}
-
-func (g *Game) DoBotAction() bool {
-	expAct := g.expectedAction()
-	if expAct.Name == "" || !g.bots[expAct.Player] {
-		return false
-	}
-
-	action := Bot{player: expAct.Player, match: g.match}.getAction(expAct.Name)
 	actRes := g.doAction(action)
-	if !actRes.Succeeded {
-		msg := fmt.Sprintf(
-			"<%s> bot action <%s> failed. Error <%s>",
-			expAct.Player, expAct.Name, actRes.ErrorMsg,
-		)
-		panic(msg)
+	if actRes.Succeeded {
+		g.doActionsByBots()
 	}
 
-	return true
+	return actRes
 }
 
 func (g *Game) doAction(action Action) ActionResult {
@@ -93,13 +80,40 @@ func (g *Game) doAction(action Action) ActionResult {
 	case PlayCardAction:
 		err = g.playCard(action.Rank, action.Suit, action.Player)
 	default:
-		panic(fmt.Sprintf("Unexpected action <%s>.", action.Name))
+		panic(fmt.Sprintf("unexpected action: %s", action.Name))
 	}
 
 	if err == nil {
 		return ActionResult{Succeeded: true}
 	} else {
 		return ActionResult{Succeeded: false, ErrorMsg: err.Error()}
+	}
+}
+
+func (g *Game) doActionByBot() bool {
+	expAct := g.expectedAction()
+	if expAct.Name == "" || !g.bots[expAct.Player] {
+		return false
+	}
+
+	action := Bot{player: expAct.Player, match: g.match}.getAction(expAct.Name)
+	actRes := g.doAction(action)
+	if !actRes.Succeeded {
+		msg := fmt.Sprintf(
+			"bot %s action %s failed: %s",
+			expAct.Player, expAct.Name, actRes.ErrorMsg,
+		)
+		panic(msg)
+	}
+
+	return true
+}
+
+func (g *Game) doActionsByBots() {
+	for {
+		if !g.doActionByBot() {
+			return
+		}
 	}
 }
 
