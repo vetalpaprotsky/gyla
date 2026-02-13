@@ -96,7 +96,11 @@ func (g *Game) doActionByBot() bool {
 		return false
 	}
 
-	action := Bot{player: expAct.Player, match: g.match}.getAction(expAct.Name)
+	action := Bot{
+		player: expAct.Player,
+		round:  *g.match.currentRound(),
+	}.getAction(expAct.Name)
+
 	actRes := g.doAction(action)
 	if !actRes.Succeeded {
 		msg := fmt.Sprintf(
