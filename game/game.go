@@ -135,7 +135,7 @@ func (g *Game) startNextTrick() {
 
 func (g *Game) assignTrumpForCurrentRound(suit Suit, player Player) error {
 	if err := g.match.assignTrumpForCurrentRound(suit, player); err != nil {
-		switch err.(matchError).error_type {
+		switch err.(matchError).code {
 		case noCurrentRoundError:
 			panic(err)
 		default:
@@ -150,7 +150,7 @@ func (g *Game) assignTrumpForCurrentRound(suit Suit, player Player) error {
 
 func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	if err := g.match.playCard(rank, suit, player); err != nil {
-		switch err.(matchError).error_type {
+		switch err.(matchError).code {
 		case noCurrentRoundError, noCurrentTrickError:
 			panic(err)
 		default:

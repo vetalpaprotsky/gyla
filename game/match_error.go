@@ -3,35 +3,33 @@ package game
 import "fmt"
 
 const (
-	noCurrentTrickError = "no_current_trick"
-	noCurrentRoundError = "no_current_round"
-
-	noTrickWinnerError  = "no_trick_winner"
-	noRoundWinTeamError = "no_round_win_team"
-
-	tooManyCardsPerTrickError  = "too_many_cards_per_trick"
-	tooManyTricksPerRoundError = "too_many_tricks_per_round"
-	tooManyRoundsPerMatchError = "too_many_rounds_per_match"
-
-	invalidRankError = "invalid_rank"
-	invalidSuitError = "invalid_suit"
-
-	handNotFoundError            = "hand_not_found"
-	invalidCardForPlayError      = "invalid_card_for_play"
-	unexpectedPlayerError        = "unexpected_player"
-	repeatedTrumpAssignmentError = "repeated_trump_assignment"
-	invalidTrumpError            = "invalid_trump"
-	unexpectedTrumperError       = "unexpected_trumper"
-	matchCompletedError          = "match_completed"
+	noCurrentTrickError = iota + 1
+	noCurrentRoundError
+	noTrickWinnerError
+	noRoundWinTeamError
+	tooManyCardsPerTrickError
+	tooManyTricksPerRoundError
+	tooManyRoundsPerMatchError
+	invalidRankError
+	invalidSuitError
+	handNotFoundError
+	invalidCardForPlayError
+	unexpectedPlayerError
+	repeatedTrumpAssignmentError
+	invalidTrumpError
+	unexpectedTrumperError
+	matchCompletedError
 )
 
+type matchErrorCode int
+
 type matchError struct {
-	error_type string
-	msg        string
+	code matchErrorCode
+	msg  string
 }
 
 func (me matchError) Error() string {
-	return fmt.Sprintf("%s - %s", me.error_type, me.msg)
+	return me.msg
 }
 
 func newNoCurrentTrickError() matchError {
