@@ -15,6 +15,7 @@ const (
 	handNotFoundError
 	invalidCardForPlayError
 	unexpectedPlayerError
+	noTrumpAssignedError
 	repeatedTrumpAssignmentError
 	invalidTrumpError
 	unexpectedTrumperError
@@ -94,6 +95,12 @@ func newInvalidCardForPlayError(player Player, card Card) matchError {
 	return matchError{
 		invalidCardForPlayError,
 		fmt.Sprintf("player %s cannot play card %s", player, card),
+	}
+}
+
+func newNoTrumpAssignedError() matchError {
+	return matchError{
+		noTrumpAssignedError, "trump not assigned",
 	}
 }
 

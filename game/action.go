@@ -12,11 +12,6 @@ type Action struct {
 	Suit   Suit
 }
 
-type ExpectedAction struct {
-	Name   string
-	Player Player
-}
-
 type ActionResult struct {
 	ErrorMsg  string
 	Succeeded bool

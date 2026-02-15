@@ -6,8 +6,8 @@ import (
 
 type Game struct {
 	match  match
-	bots   map[Player]bool
-	events []Event
+	ai     ai
+	events []GameEvent
 }
 
 func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
@@ -34,53 +34,35 @@ func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
 	return game
 }
 
-func (g *Game) StartMatch() {
+func (g *Game) StartMatch() GameUpdate {
 	g.addEvent(matchStartedEvent)
 	g.startNextRound()
-	g.doActionsByBots()
+	g.applyAiActions()
+
+	return g.createGameUpdate()
 }
 
-func (g Game) GetEvent() Event {
-	// TODO: Remove event from slice.
+func (g *Game) Apply(action Action) (ActionResult, GameUpdate) {
+	actRes := g.apply(action)
 
-	return Event{}
-}
-
-func (g *Game) DoAction(action Action) ActionResult {
-	expAct := g.expectedAction()
-	if expAct.Name == "" {
-		return ActionResult{Succeeded: false, ErrorMsg: "no action expected"}
-	}
-
-	if g.bots[expAct.Player] {
-		panic("bot action wasn't done")
-	}
-
-	if expAct.Name != action.Name || expAct.Player != action.Player {
-		msg := fmt.Sprintf(
-			"unexpected action: expected %s action from player %s",
-			expAct.Name, expAct.Player,
-		)
-		return ActionResult{Succeeded: false, ErrorMsg: msg}
-	}
-
-	actRes := g.doAction(action)
 	if actRes.Succeeded {
-		g.doActionsByBots()
+		g.applyAiActions()
+	} else {
+		return actRes, GameUpdate{}
 	}
 
-	return actRes
+	return actRes, g.createGameUpdate()
 }
 
-func (g *Game) doAction(action Action) ActionResult {
+func (g *Game) apply(action Action) ActionResult {
 	var err error
 	switch action.Name {
 	case AssignTrumpAction:
-		err = g.assignTrumpForCurrentRound(action.Suit, action.Player)
+		err = g.assignTrump(action.Suit, action.Player)
 	case PlayCardAction:
 		err = g.playCard(action.Rank, action.Suit, action.Player)
 	default:
-		panic(fmt.Sprintf("unexpected action: %s", action.Name))
+		err = fmt.Errorf("unexpected action: %s", action.Name)
 	}
 
 	if err == nil {
@@ -90,22 +72,17 @@ func (g *Game) doAction(action Action) ActionResult {
 	}
 }
 
-func (g *Game) doActionByBot() bool {
-	expAct := g.expectedAction()
-	if expAct.Name == "" || !g.bots[expAct.Player] {
+func (g *Game) applyAiAction() bool {
+	action := g.ai.getAction(g.match)
+	if action.Name == "" {
 		return false
 	}
 
-	action := Bot{
-		player: expAct.Player,
-		round:  *g.match.currentRound(),
-	}.getAction(expAct.Name)
-
-	actRes := g.doAction(action)
+	actRes := g.apply(action)
 	if !actRes.Succeeded {
 		msg := fmt.Sprintf(
-			"bot %s action %s failed: %s",
-			expAct.Player, expAct.Name, actRes.ErrorMsg,
+			"ai %s action %s failed: %s",
+			action.Player, action.Name, actRes.ErrorMsg,
 		)
 		panic(msg)
 	}
@@ -113,9 +90,9 @@ func (g *Game) doActionByBot() bool {
 	return true
 }
 
-func (g *Game) doActionsByBots() {
+func (g *Game) applyAiActions() {
 	for {
-		if !g.doActionByBot() {
+		if !g.applyAiAction() {
 			return
 		}
 	}
@@ -137,8 +114,8 @@ func (g *Game) startNextTrick() {
 	g.addEvent(trickStartedEvent)
 }
 
-func (g *Game) assignTrumpForCurrentRound(suit Suit, player Player) error {
-	if err := g.match.assignTrumpForCurrentRound(suit, player); err != nil {
+func (g *Game) assignTrump(suit Suit, player Player) error {
+	if err := g.match.assignTrump(suit, player); err != nil {
 		switch err.(matchError).code {
 		case noCurrentRoundError:
 			panic(err)
@@ -180,45 +157,15 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 }
 
 func (g *Game) addEvent(name string) {
-	g.events = append(g.events, Event{name, g.createSnapshot()})
+	g.events = append(g.events, NewGameEvent(name, g))
 }
 
-func (g Game) createSnapshot() gameSnapshot {
-	match := g.match
-	curRound := g.match.currentRound()
+func (g *Game) createGameUpdate() GameUpdate {
+	update := NewGameUpdate(g)
 
-	if curRound == nil {
-		return gameSnapshot{
-			plrsRel:        match.plrsRel,
-			bots:           g.bots,
-			expectedAction: g.expectedAction(),
-		}
-	}
+	// It's important to delete events, so they
+	// don't end up in the next game update.
+	g.events = nil
 
-	return gameSnapshot{
-		curRound:       curRound.deepCopy(),
-		score:          newScore(match),
-		plrsRel:        match.plrsRel,
-		bots:           g.bots,
-		expectedAction: g.expectedAction(),
-	}
-}
-
-func (g Game) expectedAction() ExpectedAction {
-	curRound := g.match.currentRound()
-
-	if curRound == nil {
-		return ExpectedAction{}
-	}
-
-	curTrick := g.match.currentTrick()
-	if curTrick == nil {
-		return ExpectedAction{AssignTrumpAction, curRound.starter}
-	}
-
-	if nextPlayer := curTrick.expectedNextPlayer(); nextPlayer != Player("") {
-		return ExpectedAction{PlayCardAction, nextPlayer}
-	}
-
-	return ExpectedAction{}
+	return update
 }

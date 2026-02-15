@@ -4,6 +4,15 @@ import (
 	"maps"
 )
 
+// Client facing struct.
+type Trick struct {
+	Number  int
+	Starter Player
+	Next    Player
+	Cards   map[Player]Card
+	Winner  Player
+}
+
 type trick struct {
 	number  int
 	starter Player
@@ -97,10 +106,6 @@ func (t trick) hasAnyTrumps() bool {
 	return false
 }
 
-func (t trick) isPlayerValid(p Player) bool {
-	return t.plrsRel.isPlayerValid(p)
-}
-
 func (t trick) isEmpty() bool {
 	return len(t.cards) == 0
 }
@@ -125,4 +130,9 @@ func (t trick) expectedNextPlayer() Player {
 			return player
 		}
 	}
+}
+
+func (t trick) lastPlay() (Card, Player) {
+	// TODO can be calculated based on starter player.
+	return Card{}, Player("")
 }

@@ -57,6 +57,21 @@ func (pr playersRelation) getTeammate(p Player) Player {
 	}
 }
 
+func (pr playersRelation) getRightOpponent(p Player) Player {
+	switch p {
+	case pr.player1:
+		return pr.player4
+	case pr.player2:
+		return pr.player1
+	case pr.player3:
+		return pr.player2
+	case pr.player4:
+		return pr.player3
+	default:
+		return Player("")
+	}
+}
+
 func (pr playersRelation) getTeamPlayers(t Team) []Player {
 	switch t {
 	case pr.team1:
@@ -70,13 +85,4 @@ func (pr playersRelation) getTeamPlayers(t Team) []Player {
 
 func (pr playersRelation) getAllPlayers() []Player {
 	return []Player{pr.player1, pr.player2, pr.player3, pr.player4}
-}
-
-func (pr playersRelation) isPlayerValid(p Player) bool {
-	switch p {
-	case pr.player1, pr.player2, pr.player3, pr.player4:
-		return true
-	default:
-		return false
-	}
 }

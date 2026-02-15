@@ -75,7 +75,7 @@ func (m *match) playCard(rank Rank, suit Suit, player Player) error {
 	return nil
 }
 
-func (m *match) assignTrumpForCurrentRound(suit Suit, player Player) error {
+func (m *match) assignTrump(suit Suit, player Player) error {
 	if m.isMatchCompleted {
 		return newMatchCompletedError()
 	}

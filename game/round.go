@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// TODO: Hands must be implemented in a different way. Consider map instead of
+// slice.
 type round struct {
 	number  int
 	hands   []hand
@@ -78,21 +80,33 @@ func (r *round) startNextTrick() error {
 	var err error
 
 	if curTrick := r.currentTrick(); curTrick == nil {
-		trick = newFirstTrick(r.starter, r.plrsRel)
+		if r.isTrumpAssigned() {
+			trick = newFirstTrick(r.starter, r.plrsRel)
+		} else {
+			err = newNoTrumpAssignedError()
+		}
 	} else {
 		trick, err = newTrick(*curTrick)
 	}
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	r.tricks = append(r.tricks, trick)
 	return nil
 }
 
+func (r round) isTrumpAssigned() bool {
+	return r.trump != ""
+}
+
+func (r round) trumper() Player {
+	return r.starter
+}
+
 func (r *round) assignTrump(trump Suit, player Player) error {
-	if r.trump != "" {
+	if r.isTrumpAssigned() {
 		return newRepeatedTrumpAssignmentError(trump, r.trump)
 	}
 
@@ -106,8 +120,8 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 		return newInvalidTrumpError(trump)
 	}
 
-	if player != r.starter {
-		return newUnexpectedTrumperError(player, r.starter)
+	if player != r.trumper() {
+		return newUnexpectedTrumperError(player, r.trumper())
 	}
 
 	r.trump = trump
@@ -172,10 +186,6 @@ func (r round) getHand(player Player) *hand {
 	}
 
 	return nil
-}
-
-func (r round) tricksPerTeam() tricksPerTeam {
-	return newTricksPerTeam(r)
 }
 
 func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
@@ -252,6 +262,16 @@ func (r round) winTeam() (Team, bool) {
 	} else {
 		panic("draw in round: impossible case")
 	}
+}
+
+func (r round) trumperHasSix() bool {
+	for _, c := range r.getHand(r.trumper()).cards {
+		if c.Rank == sixRank && c.IsTrump {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (r round) starterTeam() Team {
