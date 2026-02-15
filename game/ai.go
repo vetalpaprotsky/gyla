@@ -27,7 +27,6 @@ func (ai ai) getAction(match match) Action {
 				Rank:   card.Rank,
 				Suit:   card.Suit,
 			}
-
 		}
 	}
 
