@@ -5,28 +5,24 @@ import (
 )
 
 type Game struct {
-	match  match
-	ai     ai
-	events []GameEvent
+	match      match
+	gameUpdate GameUpdate
 }
 
 func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
-	team1 := Team(t1)
-	player1 := Player(p1)
-	player3 := Player(p3)
-	team2 := Team(t2)
-	player2 := Player(p2)
-	player4 := Player(p4)
-
 	game := Game{
 		match: match{
 			plrsRel: playersRelation{
-				team1:   team1,
-				player1: player1,
-				player3: player3,
-				team2:   team2,
-				player2: player2,
-				player4: player4,
+				team1:   Team(t1),
+				team2:   Team(t2),
+				player1: Player(p1),
+				player2: Player(p2),
+				player3: Player(p3),
+				player4: Player(p4),
+				ai1:     false,
+				ai2:     false,
+				ai3:     false,
+				ai4:     false,
 			},
 		},
 	}
@@ -39,7 +35,7 @@ func (g *Game) StartMatch() GameUpdate {
 	g.startNextRound()
 	g.applyAiActions()
 
-	return g.createGameUpdate()
+	return g.finalizeGameUpdate()
 }
 
 func (g *Game) Apply(action Action) (ActionResult, GameUpdate) {
@@ -51,7 +47,7 @@ func (g *Game) Apply(action Action) (ActionResult, GameUpdate) {
 		return actRes, GameUpdate{}
 	}
 
-	return actRes, g.createGameUpdate()
+	return actRes, g.finalizeGameUpdate()
 }
 
 func (g *Game) apply(action Action) ActionResult {
@@ -73,7 +69,7 @@ func (g *Game) apply(action Action) ActionResult {
 }
 
 func (g *Game) applyAiAction() bool {
-	action := g.ai.getAction(g.match)
+	action := getAIAction(g.match)
 	if action.Name == "" {
 		return false
 	}
@@ -156,16 +152,14 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	return nil
 }
 
-func (g *Game) addEvent(name string) {
-	g.events = append(g.events, NewGameEvent(name, g))
+func (g *Game) addEvent(eventType string) {
+	g.gameUpdate.addEvent(eventType, g)
 }
 
-func (g *Game) createGameUpdate() GameUpdate {
-	update := NewGameUpdate(g)
-
-	// It's important to delete events, so they
-	// don't end up in the next game update.
-	g.events = nil
+func (g *Game) finalizeGameUpdate() GameUpdate {
+	g.gameUpdate.addState(g)
+	update := g.gameUpdate
+	g.gameUpdate = GameUpdate{}
 
 	return update
 }

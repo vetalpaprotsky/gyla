@@ -37,7 +37,7 @@ type GameEvent interface {
 func NewGameEvent(eventType string, g *Game) GameEvent {
 	switch eventType {
 	case matchStartedEvent:
-		return MatchStartedEvent{plrsRel: g.match.plrsRel, ai: g.ai}
+		return MatchStartedEvent{plrsRel: g.match.plrsRel}
 	case roundStartedEvent:
 		return RoundStartedEvent{round: g.match.currentRound().deepCopy()}
 	case trumpAssignedEvent:
@@ -52,7 +52,6 @@ func NewGameEvent(eventType string, g *Game) GameEvent {
 
 type MatchStartedEvent struct {
 	plrsRel playersRelation
-	ai      ai
 }
 
 func (MatchStartedEvent) EventType() string {
@@ -67,7 +66,8 @@ func (e MatchStartedEvent) PayloadFor(p Player) any {
 		LeftOpponent:  e.plrsRel.getLeftOpponent(p),
 		Teammate:      e.plrsRel.getTeammate(p),
 		RightOpponent: e.plrsRel.getRightOpponent(p),
-		AI:            e.ai,
+		// TODO: e.plrsRel.getAIMap()
+		// AI:            e.ai,
 	}
 }
 

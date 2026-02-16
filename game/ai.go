@@ -4,11 +4,10 @@ import (
 	"math/rand/v2"
 )
 
-type ai map[Player]bool
-
-func (ai ai) getAction(match match) Action {
+func getAIAction(match match) Action {
+	plrsRel := match.plrsRel
 	curRound := match.currentRound()
-	if !curRound.isTrumpAssigned() && ai[curRound.trumper()] {
+	if !curRound.isTrumpAssigned() && plrsRel.isAI(curRound.trumper()) {
 		return Action{
 			Name:   AssignTrumpAction,
 			Player: curRound.trumper(),
@@ -19,7 +18,7 @@ func (ai ai) getAction(match match) Action {
 	curTrick := curRound.currentTrick()
 	if curTrick != nil {
 		player := curTrick.expectedNextPlayer()
-		if ai[player] {
+		if plrsRel.isAI(player) {
 			card := getRandomCard(*curRound, player)
 			return Action{
 				Name:   PlayCardAction,

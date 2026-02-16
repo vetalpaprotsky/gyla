@@ -15,6 +15,19 @@ type match struct {
 	isMatchCompleted bool
 }
 
+// func (m match) deepCopy() match {
+// 	rounds := make([]round, 0, len(m.rounds))
+// 	for _, r := range m.rounds {
+// 		rounds = append(rounds, r.deepCopy())
+// 	}
+//
+// 	return match{
+// 		rounds:           rounds,
+// 		plrsRel:          m.plrsRel,
+// 		isMatchCompleted: m.isMatchCompleted,
+// 	}
+// }
+
 func (m *match) startNextRound() error {
 	if m.isMatchCompleted {
 		return newMatchCompletedError()

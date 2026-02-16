@@ -5,13 +5,13 @@ type GameUpdate struct {
 	Events []GameEvent
 }
 
-func NewGameUpdate(g *Game) GameUpdate {
-	return GameUpdate{
-		State: GameState{
-			round: g.match.currentRound().deepCopy(),
-			score: newScore(g.match),
-			ai:    g.ai,
-		},
-		Events: g.events,
-	}
+func (gu *GameUpdate) addState(g *Game) {
+	gu.State = NewGameState(g)
+}
+
+func (gu *GameUpdate) addEvent(eventType string, g *Game) {
+	gu.Events = append(
+		gu.Events,
+		NewGameEvent(eventType, g),
+	)
 }

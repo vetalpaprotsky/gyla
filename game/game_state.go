@@ -3,9 +3,16 @@ package game
 type GameState struct {
 	round round
 	score score
-	ai    ai
 }
 
+func NewGameState(g *Game) GameState {
+	return GameState{
+		round: g.match.currentRound().deepCopy(),
+		score: newScore(g.match),
+	}
+}
+
+// TODO: Round win team? Match win team?
 type GameStatePayload struct {
 	Team          Team
 	OpponentTeam  Team

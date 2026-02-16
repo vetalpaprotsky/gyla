@@ -1,8 +1,9 @@
 package game
 
 import (
-	"gyla/testutils"
 	"testing"
+
+	"github.com/vetalpaprotsky/gyla/testutils"
 )
 
 func TestNewCard(t *testing.T) {
