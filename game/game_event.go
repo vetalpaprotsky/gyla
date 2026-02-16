@@ -2,6 +2,8 @@ package game
 
 import "fmt"
 
+// TODO: Add EventType type.
+// TODO: These constants must be public.
 // Events are ordered by their lifecycle.
 const (
 	// After this event, players must see a welcome message.
