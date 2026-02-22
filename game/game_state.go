@@ -5,14 +5,13 @@ type GameState struct {
 	score score
 }
 
-func NewGameState(g *Game) GameState {
+func newGameState(g *Game) GameState {
 	return GameState{
 		round: g.match.currentRound().deepCopy(),
 		score: newScore(g.match),
 	}
 }
 
-// TODO: Round win team? Match win team?
 type GameStatePayload struct {
 	Team          Team
 	OpponentTeam  Team
@@ -35,6 +34,9 @@ type GameStatePayload struct {
 
 	TeamScore         int
 	OpponentTeamScore int
+
+	RoundWinTeam Team
+	MatchWinTeam Team
 }
 
 func (gs GameState) PayloadFor(p Player) GameStatePayload {
