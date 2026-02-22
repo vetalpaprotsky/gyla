@@ -12,7 +12,7 @@ func newGameState(g *Game) GameState {
 	}
 }
 
-type GameStatePayload struct {
+type PlayerView struct {
 	Team          Team
 	OpponentTeam  Team
 	You           Player
@@ -47,6 +47,6 @@ type Trick struct {
 }
 
 // TODO: Implement me.
-func (gs GameState) PayloadFor(p Player) GameStatePayload {
-	return GameStatePayload{}
+func (gs GameState) ViewFor(p Player) PlayerView {
+	return PlayerView{}
 }
