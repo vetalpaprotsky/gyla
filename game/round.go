@@ -12,7 +12,7 @@ type round struct {
 	tricks  []trick
 	trump   Suit
 	starter Player
-	plrsRel playersRelation
+	table   table
 }
 
 func (r round) deepCopy() round {
@@ -32,7 +32,7 @@ func (r round) deepCopy() round {
 		tricks:  tricks,
 		trump:   r.trump,
 		starter: r.starter,
-		plrsRel: r.plrsRel,
+		table:   r.table,
 	}
 }
 
@@ -49,9 +49,9 @@ func newRound(curRound round) (round, error) {
 	}
 
 	round := round{
-		plrsRel: curRound.plrsRel,
-		number:  curRound.number + 1,
-		hands:   newDeck().deal(curRound.plrsRel),
+		table:  curRound.table,
+		number: curRound.number + 1,
+		hands:  newDeck().deal(curRound.table),
 	}
 
 	if winTeam == curRound.starterTeam() {
@@ -63,8 +63,8 @@ func newRound(curRound round) (round, error) {
 	return round, nil
 }
 
-func newFirstRound(pr playersRelation) round {
-	round := round{plrsRel: pr, number: 1, hands: newDeck().deal(pr)}
+func newFirstRound(t table) round {
+	round := round{table: t, number: 1, hands: newDeck().deal(t)}
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
@@ -81,7 +81,7 @@ func (r *round) startNextTrick() error {
 
 	if curTrick := r.currentTrick(); curTrick == nil {
 		if r.isTrumpAssigned() {
-			trick = newFirstTrick(r.starter, r.plrsRel)
+			trick = newFirstTrick(r.starter, r.table)
 		} else {
 			err = newNoTrumpAssignedError()
 		}
@@ -195,7 +195,7 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 		for j := 0; j < len(hand.cards); j++ {
 			card := hand.cards[j]
 
-			if card.Rank == nineRank && card.Suit == diamondsSuit {
+			if card.Rank == NineRank && card.Suit == DiamondsSuit {
 				return hand.player, true
 			}
 		}
@@ -240,7 +240,7 @@ func (r round) winTeam() (Team, bool) {
 		// winner is present, since all tricks are have a winner at this point.
 		winner, _ := trick.winner()
 
-		switch winnerTeam := r.plrsRel.getTeam(winner); winnerTeam {
+		switch winnerTeam := r.table.getTeam(winner); winnerTeam {
 		case starterTeam:
 			starterTeamTricks += 1
 		case opponentTeam:
@@ -266,7 +266,7 @@ func (r round) winTeam() (Team, bool) {
 
 func (r round) trumperHasSix() bool {
 	for _, c := range r.getHand(r.trumper()).cards {
-		if c.Rank == sixRank && c.IsTrump {
+		if c.Rank == SixRank && c.IsTrump {
 			return true
 		}
 	}
@@ -275,27 +275,27 @@ func (r round) trumperHasSix() bool {
 }
 
 func (r round) starterTeam() Team {
-	t := r.plrsRel.getTeam(r.starter)
+	team := r.table.getTeam(r.starter)
 
-	if t == Team("") {
+	if team == Team("") {
 		panic(fmt.Sprintf("starter player %s team is missing", r.starter))
 	}
 
-	return t
+	return team
 }
 
 func (r round) starterOpponentTeam() Team {
-	t := r.plrsRel.getOpponentTeam(r.starter)
+	team := r.table.getOpponentTeam(r.starter)
 
-	if t == Team("") {
+	if team == Team("") {
 		panic(fmt.Sprintf("starter player %s opponent team is missing", r.starter))
 	}
 
-	return r.plrsRel.getOpponentTeam(r.starter)
+	return r.table.getOpponentTeam(r.starter)
 }
 
 func (r round) starterLeftOpponent() Player {
-	opponent := r.plrsRel.getLeftOpponent(r.starter)
+	opponent := r.table.getLeftOpponent(r.starter)
 
 	if opponent == Player("") {
 		panic(fmt.Sprintf("starter player %s left opponent is missing", r.starter))

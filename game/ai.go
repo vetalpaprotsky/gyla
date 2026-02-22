@@ -5,9 +5,9 @@ import (
 )
 
 func getAIAction(match match) Action {
-	plrsRel := match.plrsRel
+	table := match.table
 	curRound := match.currentRound()
-	if !curRound.isTrumpAssigned() && plrsRel.isAI(curRound.trumper()) {
+	if !curRound.isTrumpAssigned() && table.isAI(curRound.trumper()) {
 		return Action{
 			Name:   AssignTrumpAction,
 			Player: curRound.trumper(),
@@ -18,7 +18,7 @@ func getAIAction(match match) Action {
 	curTrick := curRound.currentTrick()
 	if curTrick != nil {
 		player := curTrick.expectedNextPlayer()
-		if plrsRel.isAI(player) {
+		if table.isAI(player) {
 			card := getRandomCard(*curRound, player)
 			return Action{
 				Name:   PlayCardAction,

@@ -12,7 +12,7 @@ type Game struct {
 func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
 	game := Game{
 		match: match{
-			plrsRel: playersRelation{
+			table: table{
 				team1:   Team(t1),
 				team2:   Team(t2),
 				player1: Player(p1),

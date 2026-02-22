@@ -39,6 +39,14 @@ type GameStatePayload struct {
 	MatchWinTeam Team
 }
 
+type Trick struct {
+	Number int
+	Next   Player
+	Cards  map[Player]Card
+	Winner Player
+}
+
+// TODO: Implement me.
 func (gs GameState) PayloadFor(p Player) GameStatePayload {
 	return GameStatePayload{}
 }

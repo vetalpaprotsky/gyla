@@ -4,8 +4,6 @@ import (
 	"strings"
 )
 
-type Suit string
-type Rank string
 type Card struct {
 	Rank    Rank
 	Suit    Suit
@@ -56,7 +54,7 @@ func newCardFromRankAndSuit(rankAndSuit string) (Card, error) {
 }
 
 func (c Card) isDefaultTrump() bool {
-	return c.Rank == sevenRank || c.Rank == jackRank
+	return c.Rank == SevenRank || c.Rank == JackRank
 }
 
 func (c Card) level() int {
@@ -64,55 +62,55 @@ func (c Card) level() int {
 
 	if c.isDefaultTrump() {
 		switch c.rankAndSuit() {
-		case string(sevenRank) + string(clubsSuit):
+		case string(SevenRank) + string(ClubsSuit):
 			level = 21
-		case string(sevenRank) + string(spadesSuit):
+		case string(SevenRank) + string(SpadesSuit):
 			level = 20
-		case string(sevenRank) + string(heartsSuit):
+		case string(SevenRank) + string(HeartsSuit):
 			level = 19
-		case string(sevenRank) + string(diamondsSuit):
+		case string(SevenRank) + string(DiamondsSuit):
 			level = 18
-		case string(jackRank) + string(clubsSuit):
+		case string(JackRank) + string(ClubsSuit):
 			level = 17
-		case string(jackRank) + string(spadesSuit):
+		case string(JackRank) + string(SpadesSuit):
 			level = 16
-		case string(jackRank) + string(heartsSuit):
+		case string(JackRank) + string(HeartsSuit):
 			level = 15
-		case string(jackRank) + string(diamondsSuit):
+		case string(JackRank) + string(DiamondsSuit):
 			level = 14
 		}
 	} else if c.IsTrump {
 		switch c.Rank {
-		case sixRank:
+		case SixRank:
 			level = 22
-		case aceRank:
+		case AceRank:
 			level = 13
-		case kingRank:
+		case KingRank:
 			level = 12
-		case queenRank:
+		case QueenRank:
 			level = 11
-		case tenRank:
+		case TenRank:
 			level = 10
-		case nineRank:
+		case NineRank:
 			level = 9
-		case eightRank:
+		case EightRank:
 			level = 8
 		}
 	} else {
 		switch c.Rank {
-		case aceRank:
+		case AceRank:
 			level = 7
-		case kingRank:
+		case KingRank:
 			level = 6
-		case queenRank:
+		case QueenRank:
 			level = 5
-		case tenRank:
+		case TenRank:
 			level = 4
-		case nineRank:
+		case NineRank:
 			level = 3
-		case eightRank:
+		case EightRank:
 			level = 2
-		case sixRank:
+		case SixRank:
 			level = 1
 		}
 	}

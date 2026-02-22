@@ -13,8 +13,8 @@ type score struct {
 // points must be different.
 func newScore(m match) score {
 	score := score{
-		team1: m.plrsRel.team1,
-		team2: m.plrsRel.team2,
+		team1: m.table.team1,
+		team2: m.table.team2,
 	}
 
 	for _, round := range m.rounds {

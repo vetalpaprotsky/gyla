@@ -11,22 +11,22 @@ package game
 // 8. Match is completed.
 type match struct {
 	rounds           []round
-	plrsRel          playersRelation
+	table            table
 	isMatchCompleted bool
 }
 
-// func (m match) deepCopy() match {
-// 	rounds := make([]round, 0, len(m.rounds))
-// 	for _, r := range m.rounds {
-// 		rounds = append(rounds, r.deepCopy())
-// 	}
-//
-// 	return match{
-// 		rounds:           rounds,
-// 		plrsRel:          m.plrsRel,
-// 		isMatchCompleted: m.isMatchCompleted,
-// 	}
-// }
+func (m match) deepCopy() match {
+	rounds := make([]round, 0, len(m.rounds))
+	for _, r := range m.rounds {
+		rounds = append(rounds, r.deepCopy())
+	}
+
+	return match{
+		rounds:           rounds,
+		table:            m.table,
+		isMatchCompleted: m.isMatchCompleted,
+	}
+}
 
 func (m *match) startNextRound() error {
 	if m.isMatchCompleted {
@@ -37,7 +37,7 @@ func (m *match) startNextRound() error {
 	var err error
 
 	if curRound := m.currentRound(); curRound == nil {
-		round = newFirstRound(m.plrsRel)
+		round = newFirstRound(m.table)
 	} else {
 		round, err = newRound(*curRound)
 	}
@@ -81,7 +81,7 @@ func (m *match) playCard(rank Rank, suit Suit, player Player) error {
 		return err
 	}
 
-	if newScore(*m).isMatchCompleted() {
+	if curRound.isCompleted() && newScore(*m).isMatchCompleted() {
 		m.isMatchCompleted = true
 	}
 

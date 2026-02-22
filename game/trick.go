@@ -4,19 +4,10 @@ import (
 	"maps"
 )
 
-// Client facing struct.
-type Trick struct {
-	Number  int
-	Starter Player
-	Next    Player
-	Cards   map[Player]Card
-	Winner  Player
-}
-
 type trick struct {
 	number  int
 	starter Player
-	plrsRel playersRelation
+	table   table
 	cards   map[Player]Card
 }
 
@@ -24,13 +15,13 @@ func (t trick) deepCopy() trick {
 	return trick{
 		number:  t.number,
 		starter: t.starter,
-		plrsRel: t.plrsRel,
+		table:   t.table,
 		cards:   maps.Clone(t.cards),
 	}
 }
 
-func newFirstTrick(starter Player, plrsRel playersRelation) trick {
-	return trick{number: 1, starter: starter, plrsRel: plrsRel, cards: make(map[Player]Card)}
+func newFirstTrick(starter Player, table table) trick {
+	return trick{number: 1, starter: starter, table: table, cards: make(map[Player]Card)}
 }
 
 func newTrick(curTrick trick) (trick, error) {
@@ -46,7 +37,7 @@ func newTrick(curTrick trick) (trick, error) {
 	return trick{
 		number:  curTrick.number + 1,
 		starter: winner,
-		plrsRel: curTrick.plrsRel,
+		table:   curTrick.table,
 		cards:   make(map[Player]Card),
 	}, nil
 }
@@ -125,7 +116,7 @@ func (t trick) expectedNextPlayer() Player {
 
 	player := t.starter
 	for {
-		player = t.plrsRel.getLeftOpponent(player)
+		player = t.table.getLeftOpponent(player)
 		if _, ok := t.cards[player]; !ok {
 			return player
 		}
