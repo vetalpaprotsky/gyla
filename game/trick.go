@@ -29,8 +29,8 @@ func newTrick(curTrick trick) (trick, error) {
 		return trick{}, newTooManyTricksPerRoundError()
 	}
 
-	winner, winnerOk := curTrick.winner()
-	if !winnerOk {
+	winner := curTrick.winner()
+	if winner == Player("") {
 		return trick{}, newNoTrickWinnerError()
 	}
 
@@ -53,9 +53,9 @@ func (t *trick) addCard(player Player, card Card) error {
 	return nil
 }
 
-func (t trick) winner() (Player, bool) {
+func (t trick) winner() Player {
 	if !t.isCompleted() {
-		return Player(""), false
+		return Player("")
 	}
 
 	winPlayer := t.starter
@@ -80,7 +80,7 @@ func (t trick) winner() (Player, bool) {
 		}
 	}
 
-	return winPlayer, true
+	return winPlayer
 }
 
 func (t trick) firstCard() Card {
@@ -121,9 +121,4 @@ func (t trick) expectedNextPlayer() Player {
 			return player
 		}
 	}
-}
-
-func (t trick) lastPlay() (Card, Player) {
-	// TODO can be calculated based on starter player.
-	return Card{}, Player("")
 }

@@ -1,25 +1,30 @@
 package game
 
 // TODO: We could store every round history here.
-// We might even want to rename this to matchStats?
+// And most likely we want to rename this to matchStats.
+// Let's first image how "Match Stats" table should look like on UI,
+// and store everything we need here.
+//
+// I think we should just store match field hear, and provide any kind of
+// needed methods to get some info.
 type score struct {
-	team1   Team
-	points1 int
-	team2   Team
-	points2 int
+	points map[Team]int
 }
 
 // TODO: When loser team has no tricks, or has one trick, the number of added
 // points must be different.
 func newScore(m match) score {
+	teams := m.table.getTeams()
 	score := score{
-		team1: m.table.team1,
-		team2: m.table.team2,
+		points: map[Team]int{
+			teams[0]: 0,
+			teams[1]: 0,
+		},
 	}
 
 	for _, round := range m.rounds {
-		winTeam, winTeamOk := round.winTeam()
-		if !winTeamOk {
+		winTeam := round.winTeam()
+		if winTeam == Team("") {
 			continue
 		}
 
@@ -28,18 +33,19 @@ func newScore(m match) score {
 			pointsToAdd = 12
 		}
 
-		if winTeam == score.team1 {
-			score.points1 += pointsToAdd
-		} else {
-			score.points2 += pointsToAdd
-		}
+		score.points[winTeam] += pointsToAdd
 	}
 
 	return score
 }
 
 func (s score) isMatchCompleted() bool {
-	return s.points1 >= 60 || s.points2 >= 60
+	for _, pts := range s.points {
+		if pts >= 60 {
+			return true
+		}
+	}
+	return false
 }
 
 func (s score) winTeam() Team {
@@ -47,9 +53,13 @@ func (s score) winTeam() Team {
 		return Team("")
 	}
 
-	if s.points1 > s.points2 {
-		return s.team1
-	} else {
-		return s.team2
+	var winner Team
+	maxPoints := 0
+	for team, pts := range s.points {
+		if pts > maxPoints {
+			maxPoints = pts
+			winner = team
+		}
 	}
+	return winner
 }

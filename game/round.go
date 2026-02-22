@@ -7,12 +7,13 @@ import (
 // TODO: Hands must be implemented in a different way. Consider map instead of
 // slice.
 type round struct {
-	number  int
-	hands   []hand
-	tricks  []trick
-	trump   Suit
-	starter Player
-	table   table
+	number         int
+	hands          []hand
+	tricks         []trick
+	trump          Suit
+	starter        Player
+	table          table
+	trumpedWithSix bool
 }
 
 func (r round) deepCopy() round {
@@ -43,8 +44,8 @@ func newRound(curRound round) (round, error) {
 		return round{}, newTooManyRoundsPerMatchError()
 	}
 
-	winTeam, winTeamOk := curRound.winTeam()
-	if !winTeamOk {
+	winTeam := curRound.winTeam()
+	if winTeam == Team("") {
 		return round{}, newNoRoundWinTeamError()
 	}
 
@@ -125,11 +126,18 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 	}
 
 	r.trump = trump
+
 	for _, h := range r.hands {
 		for i, c := range h.cards {
 			if c.Suit == trump {
 				h.cards[i].IsTrump = true
 			}
+		}
+	}
+
+	for _, c := range r.getHand(r.trumper()).cards {
+		if c.Rank == SixRank && c.IsTrump {
+			r.trumpedWithSix = true
 		}
 	}
 
@@ -225,9 +233,9 @@ func (r round) isCompleted() bool {
 	return true
 }
 
-func (r round) winTeam() (Team, bool) {
+func (r round) winTeam() Team {
 	if !r.isCompleted() {
-		return Team(""), false
+		return Team("")
 	}
 
 	starterTeam := r.starterTeam()
@@ -236,9 +244,7 @@ func (r round) winTeam() (Team, bool) {
 	opponentTeamTricks := 0
 
 	for _, trick := range r.tricks {
-		// It's safe to skip bool value in this case, since we're sure that
-		// winner is present, since all tricks are have a winner at this point.
-		winner, _ := trick.winner()
+		winner := trick.winner()
 
 		switch winnerTeam := r.table.getTeam(winner); winnerTeam {
 		case starterTeam:
@@ -256,22 +262,12 @@ func (r round) winTeam() (Team, bool) {
 	}
 
 	if starterTeamTricks > opponentTeamTricks {
-		return starterTeam, true
+		return starterTeam
 	} else if starterTeamTricks < opponentTeamTricks {
-		return opponentTeam, true
+		return opponentTeam
 	} else {
 		panic("draw in round: impossible case")
 	}
-}
-
-func (r round) trumperHasSix() bool {
-	for _, c := range r.getHand(r.trumper()).cards {
-		if c.Rank == SixRank && c.IsTrump {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (r round) starterTeam() Team {

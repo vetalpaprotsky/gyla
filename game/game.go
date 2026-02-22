@@ -9,21 +9,10 @@ type Game struct {
 	gameEvents []GameEvent
 }
 
-func NewGame(t1, p1, p3, t2, p2, p4 string) Game {
+func NewGame(p1, p2, p3, p4 Player, t1, t2 Team, ai1, ai2, ai3, ai4 bool) Game {
 	game := Game{
 		match: match{
-			table: table{
-				team1:   Team(t1),
-				team2:   Team(t2),
-				player1: Player(p1),
-				player2: Player(p2),
-				player3: Player(p3),
-				player4: Player(p4),
-				ai1:     false,
-				ai2:     false,
-				ai3:     false,
-				ai4:     false,
-			},
+			table: newTable(p1, p2, p3, p4, t1, t2, ai1, ai2, ai3, ai4),
 		},
 	}
 
@@ -140,7 +129,7 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 		}
 	}
 
-	if g.match.isMatchCompleted {
+	if g.match.isMatchCompleted() {
 		g.addGameEvent(CardPlayedAndMatchCompletedEvent)
 	} else if g.match.isCurrentRoundCompleted() {
 		g.addGameEvent(CardPlayedAndRoundCompletedEvent)

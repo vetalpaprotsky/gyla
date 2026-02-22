@@ -10,9 +10,8 @@ package game
 // 7. If match isn't completed, go to step 1.
 // 8. Match is completed.
 type match struct {
-	rounds           []round
-	table            table
-	isMatchCompleted bool
+	rounds []round
+	table  table
 }
 
 func (m match) deepCopy() match {
@@ -22,14 +21,13 @@ func (m match) deepCopy() match {
 	}
 
 	return match{
-		rounds:           rounds,
-		table:            m.table,
-		isMatchCompleted: m.isMatchCompleted,
+		rounds: rounds,
+		table:  m.table,
 	}
 }
 
 func (m *match) startNextRound() error {
-	if m.isMatchCompleted {
+	if m.isMatchCompleted() {
 		return newMatchCompletedError()
 	}
 
@@ -51,7 +49,7 @@ func (m *match) startNextRound() error {
 }
 
 func (m *match) startNextTrick() error {
-	if m.isMatchCompleted {
+	if m.isMatchCompleted() {
 		return newMatchCompletedError()
 	}
 
@@ -68,7 +66,7 @@ func (m *match) startNextTrick() error {
 }
 
 func (m *match) playCard(rank Rank, suit Suit, player Player) error {
-	if m.isMatchCompleted {
+	if m.isMatchCompleted() {
 		return newMatchCompletedError()
 	}
 
@@ -81,15 +79,11 @@ func (m *match) playCard(rank Rank, suit Suit, player Player) error {
 		return err
 	}
 
-	if curRound.isCompleted() && newScore(*m).isMatchCompleted() {
-		m.isMatchCompleted = true
-	}
-
 	return nil
 }
 
 func (m *match) assignTrump(suit Suit, player Player) error {
-	if m.isMatchCompleted {
+	if m.isMatchCompleted() {
 		return newMatchCompletedError()
 	}
 
@@ -145,4 +139,8 @@ func (m match) isCurrentRoundCompleted() bool {
 	}
 
 	return curRound.isCompleted()
+}
+
+func (m match) isMatchCompleted() bool {
+	return m.isCurrentRoundCompleted() && newScore(m).isMatchCompleted()
 }
