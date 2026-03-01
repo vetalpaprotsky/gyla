@@ -1,19 +1,10 @@
 package game
 
-import (
-	"slices"
-)
+import "slices"
 
 type Hand struct {
 	Player Player
 	Cards  []Card
-}
-
-func (h Hand) deepCopy() Hand {
-	return Hand{
-		Player: h.Player,
-		Cards:  append([]Card{}, h.Cards...),
-	}
 }
 
 func (h *Hand) removeCard(card Card) bool {
@@ -31,6 +22,13 @@ func (h *Hand) removeCard(card Card) bool {
 	h.Cards = newCards
 
 	return true
+}
+
+func (h Hand) deepCopy() Hand {
+	return Hand{
+		Player: h.Player,
+		Cards:  append([]Card{}, h.Cards...),
+	}
 }
 
 func (h Hand) getCard(rank Rank, suit Suit) Card {

@@ -94,7 +94,7 @@ func newHandNotFoundError(player Player) matchError {
 func newInvalidCardForPlayError(player Player, card Card) matchError {
 	return matchError{
 		invalidCardForPlayError,
-		fmt.Sprintf("player %s cannot play card %s", player, card),
+		fmt.Sprintf("player %s cannot play card %v", player, card),
 	}
 }
 

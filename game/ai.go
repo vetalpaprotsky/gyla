@@ -1,8 +1,6 @@
 package game
 
-import (
-	"math/rand/v2"
-)
+import "math/rand/v2"
 
 func getAIAction(match match) Action {
 	table := match.table

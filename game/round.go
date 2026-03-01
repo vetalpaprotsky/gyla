@@ -1,57 +1,8 @@
 package game
 
-import (
-	"fmt"
-)
+import "fmt"
 
-type RoundState struct {
-	Number         int
-	Trumper        Player
-	TrumpedWithSix bool
-	Trump          Suit
-	Hands          []Hand
-	Tricks         []TrickState
-	WinTeam        Team
-	Table          Table
-}
-
-func (rs RoundState) getHand(p Player) Hand {
-	for _, h := range rs.Hands {
-		if h.Player == p {
-			return h
-		}
-	}
-
-	return Hand{}
-}
-
-func (rs RoundState) ViewFor(p Player) RoundView {
-	return RoundView{
-		Number:            rs.Number,
-		Trumper:           rs.Trumper,
-		TrumpedWithSix:    rs.TrumpedWithSix,
-		Trump:             rs.Trump,
-		Hand:              rs.getHand(p),
-		LeftOpponentHand:  len(rs.getHand(rs.Table.getLeftOpponent(p)).Cards),
-		TeammateHand:      len(rs.getHand(rs.Table.getTeammate(p)).Cards),
-		RightOpponentHand: len(rs.getHand(rs.Table.getRightOpponent(p)).Cards),
-		Tricks:            rs.Tricks,
-		WinTeam:           rs.WinTeam,
-	}
-}
-
-type RoundView struct {
-	Number            int
-	Trumper           Player
-	TrumpedWithSix    bool
-	Trump             Suit
-	Hand              Hand
-	LeftOpponentHand  int
-	TeammateHand      int
-	RightOpponentHand int
-	Tricks            []TrickState
-	WinTeam           Team
-}
+const maxPossibleNumberOfRounds = 19
 
 type round struct {
 	number         int
@@ -190,29 +141,6 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 	return nil
 }
 
-func (r round) state() RoundState {
-	hands := make([]Hand, 0, len(r.hands)-1)
-	for _, h := range r.hands {
-		hands = append(hands, h.deepCopy())
-	}
-
-	tricks := make([]TrickState, 0, len(r.tricks)-1)
-	for _, t := range r.tricks {
-		tricks = append(tricks, t.state())
-	}
-
-	return RoundState{
-		Number:         r.number,
-		Trumper:        r.trumper(),
-		TrumpedWithSix: r.trumpedWithSix,
-		Trump:          r.trump,
-		Hands:          hands,
-		Tricks:         tricks,
-		WinTeam:        r.winTeam(),
-		Table:          r.table,
-	}
-}
-
 func (r round) currentTrick() *trick {
 	if len(r.tricks) == 0 {
 		return nil
@@ -341,4 +269,76 @@ func (r round) starterLeftOpponent() Player {
 	}
 
 	return opponent
+}
+
+func (r round) state() RoundState {
+	hands := make([]Hand, 0, len(r.hands)-1)
+	for _, h := range r.hands {
+		hands = append(hands, h.deepCopy())
+	}
+
+	tricks := make([]TrickState, 0, len(r.tricks)-1)
+	for _, t := range r.tricks {
+		tricks = append(tricks, t.state())
+	}
+
+	return RoundState{
+		Number:         r.number,
+		Trumper:        r.trumper(),
+		TrumpedWithSix: r.trumpedWithSix,
+		Trump:          r.trump,
+		Hands:          hands,
+		Tricks:         tricks,
+		WinTeam:        r.winTeam(),
+		Table:          r.table,
+	}
+}
+
+type RoundState struct {
+	Number         int
+	Trumper        Player
+	TrumpedWithSix bool
+	Trump          Suit
+	Hands          []Hand
+	Tricks         []TrickState
+	WinTeam        Team
+	Table          Table
+}
+
+func (rs RoundState) getHand(p Player) Hand {
+	for _, h := range rs.Hands {
+		if h.Player == p {
+			return h
+		}
+	}
+
+	return Hand{}
+}
+
+func (rs RoundState) ViewFor(p Player) RoundView {
+	return RoundView{
+		Number:            rs.Number,
+		Trumper:           rs.Trumper,
+		TrumpedWithSix:    rs.TrumpedWithSix,
+		Trump:             rs.Trump,
+		Hand:              rs.getHand(p),
+		LeftOpponentHand:  len(rs.getHand(rs.Table.getLeftOpponent(p)).Cards),
+		TeammateHand:      len(rs.getHand(rs.Table.getTeammate(p)).Cards),
+		RightOpponentHand: len(rs.getHand(rs.Table.getRightOpponent(p)).Cards),
+		Tricks:            rs.Tricks,
+		WinTeam:           rs.WinTeam,
+	}
+}
+
+type RoundView struct {
+	Number            int
+	Trumper           Player
+	TrumpedWithSix    bool
+	Trump             Suit
+	Hand              Hand
+	LeftOpponentHand  int
+	TeammateHand      int
+	RightOpponentHand int
+	Tricks            []TrickState
+	WinTeam           Team
 }

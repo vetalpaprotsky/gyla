@@ -1,11 +1,6 @@
 package game
 
-type TrickState struct {
-	Number      int
-	Next        Player
-	PlayedCards []PlayedCard
-	Winner      Player
-}
+const tricksPerRoundCount = 9
 
 type trick struct {
 	number      int
@@ -50,15 +45,6 @@ func (t *trick) addCard(player Player, card Card) error {
 
 	t.playedCards = append(t.playedCards, PlayedCard{Player: player, Card: card})
 	return nil
-}
-
-func (t trick) state() TrickState {
-	return TrickState{
-		Number:      t.number,
-		Next:        t.expectedNextPlayer(),
-		PlayedCards: append([]PlayedCard{}, t.playedCards...),
-		Winner:      t.winner(),
-	}
 }
 
 func (t trick) winner() Player {
@@ -127,4 +113,25 @@ func (t trick) expectedNextPlayer() Player {
 
 	lastPlayer := t.playedCards[len(t.playedCards)-1].Player
 	return t.table.getLeftOpponent(lastPlayer)
+}
+
+func (t trick) state() TrickState {
+	return TrickState{
+		Number:      t.number,
+		Next:        t.expectedNextPlayer(),
+		PlayedCards: append([]PlayedCard{}, t.playedCards...),
+		Winner:      t.winner(),
+	}
+}
+
+type TrickState struct {
+	Number      int
+	Next        Player
+	PlayedCards []PlayedCard
+	Winner      Player
+}
+
+type PlayedCard struct {
+	Player Player
+	Card   Card
 }

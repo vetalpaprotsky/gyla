@@ -1,77 +1,9 @@
 package game
 
-import (
-	"strings"
-)
-
-type Rank string
-
-type Suit string
-
 type Card struct {
 	Rank    Rank
 	Suit    Suit
 	IsTrump bool
-}
-
-// TODO: We could store them as bites(chars)
-const (
-	SixRank   = Rank("6")
-	SevenRank = Rank("7")
-	EightRank = Rank("8")
-	NineRank  = Rank("9")
-	TenRank   = Rank("10")
-	JackRank  = Rank("J")
-	QueenRank = Rank("Q")
-	KingRank  = Rank("K")
-	AceRank   = Rank("A")
-)
-
-var validRanks = [9]Rank{
-	SixRank,
-	SevenRank,
-	EightRank,
-	NineRank,
-	TenRank,
-	JackRank,
-	QueenRank,
-	KingRank,
-	AceRank,
-}
-
-// TODO: We could store them as bites(chars)
-const (
-	ClubsSuit    = Suit("C")
-	SpadesSuit   = Suit("S")
-	HeartsSuit   = Suit("H")
-	DiamondsSuit = Suit("D")
-)
-
-var validSuits = [4]Suit{
-	ClubsSuit,
-	SpadesSuit,
-	HeartsSuit,
-	DiamondsSuit,
-}
-
-func (s Suit) isValid() bool {
-	for _, validSuit := range validSuits {
-		if s == validSuit {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (r Rank) isValid() bool {
-	for _, validRank := range validRanks {
-		if r == validRank {
-			return true
-		}
-	}
-
-	return false
 }
 
 func newCard(rank Rank, suit Suit) (Card, error) {
@@ -88,13 +20,6 @@ func newCard(rank Rank, suit Suit) (Card, error) {
 	}
 
 	return card, nil
-}
-
-func newCardFromRankAndSuit(rankAndSuit string) (Card, error) {
-	rank := Rank(strings.ToUpper(rankAndSuit[:len(rankAndSuit)-1]))
-	suit := Suit(strings.ToUpper(rankAndSuit[len(rankAndSuit)-1:]))
-
-	return newCard(rank, suit)
 }
 
 func (c Card) isDefaultTrump() bool {
@@ -164,16 +89,4 @@ func (c Card) level() int {
 
 func (c Card) rankAndSuit() string {
 	return string(c.Rank) + string(c.Suit)
-}
-
-func (c Card) String() string {
-	var suffix string
-
-	if c.IsTrump {
-		suffix = "-T"
-	} else {
-		suffix = "-P"
-	}
-
-	return c.rankAndSuit() + suffix
 }

@@ -1,25 +1,5 @@
 package game
 
-type MatchState struct {
-	Table Table
-	Round RoundState
-	Stats MatchStats
-}
-
-func (ms MatchState) ViewFor(p Player) MatchView {
-	return MatchView{
-		Table: ms.Table.ViewFor(p),
-		Round: ms.Round.ViewFor(p),
-		Stats: ms.Stats,
-	}
-}
-
-type MatchView struct {
-	Table TableView
-	Round RoundView
-	Stats MatchStats
-}
-
 // Lifecycle:
 // 1. Start next round.
 // 2. Assign trump.
@@ -32,24 +12,6 @@ type MatchView struct {
 type match struct {
 	table  Table
 	rounds []round
-}
-
-func (m match) state() MatchState {
-	curRound := m.currentRound()
-	stats := newMatchStats(m)
-
-	if curRound == nil {
-		return MatchState{
-			Table: m.table,
-			Stats: stats,
-		}
-	}
-
-	return MatchState{
-		Table: m.table,
-		Round: m.currentRound().state(),
-		Stats: stats,
-	}
 }
 
 func (m *match) startNextRound() error {
@@ -162,4 +124,42 @@ func (m match) isCurrentRoundCompleted() bool {
 
 func (m match) isMatchCompleted() bool {
 	return m.isCurrentRoundCompleted() && newMatchStats(m).isMatchCompleted()
+}
+
+func (m match) state() MatchState {
+	curRound := m.currentRound()
+	stats := newMatchStats(m)
+
+	if curRound == nil {
+		return MatchState{
+			Table: m.table,
+			Stats: stats,
+		}
+	}
+
+	return MatchState{
+		Table: m.table,
+		Round: m.currentRound().state(),
+		Stats: stats,
+	}
+}
+
+type MatchState struct {
+	Table Table
+	Round RoundState
+	Stats MatchStats
+}
+
+func (ms MatchState) ViewFor(p Player) MatchView {
+	return MatchView{
+		Table: ms.Table.ViewFor(p),
+		Round: ms.Round.ViewFor(p),
+		Stats: ms.Stats,
+	}
+}
+
+type MatchView struct {
+	Table TableView
+	Round RoundView
+	Stats MatchStats
 }

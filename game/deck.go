@@ -2,6 +2,10 @@ package game
 
 import "math/rand"
 
+const cardsCount = len(validRanks) * len(validSuits)
+const playersCount = 4
+const cardsPerPlayerCount = cardsCount / playersCount
+
 type deck struct {
 	cards []Card
 }
@@ -30,8 +34,8 @@ func (d deck) deal(t Table) []Hand {
 	hands := make([]Hand, playersCount)
 
 	for i := range players {
-		start := i * cardsInHandCount
-		end := start + cardsInHandCount
+		start := i * cardsPerPlayerCount
+		end := start + cardsPerPlayerCount
 		hands[i] = Hand{Player: players[i], Cards: d.cards[start:end]}
 	}
 

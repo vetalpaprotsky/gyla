@@ -1,8 +1,6 @@
 package game
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Game struct {
 	match       match
