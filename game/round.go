@@ -4,14 +4,63 @@ import (
 	"fmt"
 )
 
+type RoundState struct {
+	Number         int
+	Trumper        Player
+	TrumpedWithSix bool
+	Trump          Suit
+	Hands          []Hand
+	Tricks         []TrickState
+	WinTeam        Team
+	Table          Table
+}
+
+func (rs RoundState) getHand(p Player) Hand {
+	for _, h := range rs.Hands {
+		if h.Player == p {
+			return h
+		}
+	}
+
+	return Hand{}
+}
+
+func (rs RoundState) ViewFor(p Player) RoundView {
+	return RoundView{
+		Number:            rs.Number,
+		Trumper:           rs.Trumper,
+		TrumpedWithSix:    rs.TrumpedWithSix,
+		Trump:             rs.Trump,
+		Hand:              rs.getHand(p),
+		LeftOpponentHand:  len(rs.getHand(rs.Table.getLeftOpponent(p)).Cards),
+		TeammateHand:      len(rs.getHand(rs.Table.getTeammate(p)).Cards),
+		RightOpponentHand: len(rs.getHand(rs.Table.getRightOpponent(p)).Cards),
+		Tricks:            rs.Tricks,
+		WinTeam:           rs.WinTeam,
+	}
+}
+
+type RoundView struct {
+	Number            int
+	Trumper           Player
+	TrumpedWithSix    bool
+	Trump             Suit
+	Hand              Hand
+	LeftOpponentHand  int
+	TeammateHand      int
+	RightOpponentHand int
+	Tricks            []TrickState
+	WinTeam           Team
+}
+
 type round struct {
 	number         int
-	hands          []hand
-	tricks         []trick
-	trump          Suit
 	starter        Player
-	table          table
 	trumpedWithSix bool
+	trump          Suit
+	hands          []Hand
+	tricks         []trick
+	table          Table
 }
 
 // TODO: When score of the starter team goes over 30, then their teammate must
@@ -42,7 +91,7 @@ func newRound(curRound round) (round, error) {
 	return round, nil
 }
 
-func newFirstRound(t table) round {
+func newFirstRound(t Table) round {
 	round := round{table: t, number: 1, hands: newDeck().deal(t)}
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
@@ -76,14 +125,6 @@ func (r *round) startNextTrick() error {
 	return nil
 }
 
-func (r round) isTrumpAssigned() bool {
-	return r.trump != ""
-}
-
-func (r round) trumper() Player {
-	return r.starter
-}
-
 func (r *round) assignTrump(trump Suit, player Player) error {
 	if r.isTrumpAssigned() {
 		return newRepeatedTrumpAssignmentError(trump, r.trump)
@@ -106,14 +147,14 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 	r.trump = trump
 
 	for _, h := range r.hands {
-		for i, c := range h.cards {
+		for i, c := range h.Cards {
 			if c.Suit == trump {
-				h.cards[i].IsTrump = true
+				h.Cards[i].IsTrump = true
 			}
 		}
 	}
 
-	for _, c := range r.getHand(r.trumper()).cards {
+	for _, c := range r.getHand(r.trumper()).Cards {
 		if c.Rank == SixRank && c.IsTrump {
 			r.trumpedWithSix = true
 		}
@@ -149,6 +190,29 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 	return nil
 }
 
+func (r round) state() RoundState {
+	hands := make([]Hand, 0, len(r.hands)-1)
+	for _, h := range r.hands {
+		hands = append(hands, h.deepCopy())
+	}
+
+	tricks := make([]TrickState, 0, len(r.tricks)-1)
+	for _, t := range r.tricks {
+		tricks = append(tricks, t.state())
+	}
+
+	return RoundState{
+		Number:         r.number,
+		Trumper:        r.trumper(),
+		TrumpedWithSix: r.trumpedWithSix,
+		Trump:          r.trump,
+		Hands:          hands,
+		Tricks:         tricks,
+		WinTeam:        r.winTeam(),
+		Table:          r.table,
+	}
+}
+
 func (r round) currentTrick() *trick {
 	if len(r.tricks) == 0 {
 		return nil
@@ -157,9 +221,9 @@ func (r round) currentTrick() *trick {
 	return &r.tricks[len(r.tricks)-1]
 }
 
-func (r round) getHand(player Player) *hand {
+func (r round) getHand(player Player) *Hand {
 	for i := 0; i < len(r.hands); i++ {
-		if r.hands[i].player == player {
+		if r.hands[i].Player == player {
 			return &r.hands[i]
 		}
 	}
@@ -171,11 +235,11 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 	for i := 0; i < len(r.hands); i++ {
 		hand := r.hands[i]
 
-		for j := 0; j < len(hand.cards); j++ {
-			card := hand.cards[j]
+		for j := 0; j < len(hand.Cards); j++ {
+			card := hand.Cards[j]
 
 			if card.Rank == NineRank && card.Suit == DiamondsSuit {
-				return hand.player, true
+				return hand.Player, true
 			}
 		}
 	}
@@ -239,6 +303,14 @@ func (r round) winTeam() Team {
 	} else {
 		panic("draw in round: impossible case")
 	}
+}
+
+func (r round) isTrumpAssigned() bool {
+	return r.trump != ""
+}
+
+func (r round) trumper() Player {
+	return r.starter
 }
 
 func (r round) starterTeam() Team {

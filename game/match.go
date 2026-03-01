@@ -1,5 +1,25 @@
 package game
 
+type MatchState struct {
+	Table Table
+	Round RoundState
+	Stats MatchStats
+}
+
+func (ms MatchState) ViewFor(p Player) MatchView {
+	return MatchView{
+		Table: ms.Table.ViewFor(p),
+		Round: ms.Round.ViewFor(p),
+		Stats: ms.Stats,
+	}
+}
+
+type MatchView struct {
+	Table TableView
+	Round RoundView
+	Stats MatchStats
+}
+
 // Lifecycle:
 // 1. Start next round.
 // 2. Assign trump.
@@ -10,8 +30,26 @@ package game
 // 7. If match isn't completed, go to step 1.
 // 8. Match is completed.
 type match struct {
+	table  Table
 	rounds []round
-	table  table
+}
+
+func (m match) state() MatchState {
+	curRound := m.currentRound()
+	stats := newMatchStats(m)
+
+	if curRound == nil {
+		return MatchState{
+			Table: m.table,
+			Stats: stats,
+		}
+	}
+
+	return MatchState{
+		Table: m.table,
+		Round: m.currentRound().state(),
+		Stats: stats,
+	}
 }
 
 func (m *match) startNextRound() error {
@@ -123,5 +161,5 @@ func (m match) isCurrentRoundCompleted() bool {
 }
 
 func (m match) isMatchCompleted() bool {
-	return m.isCurrentRoundCompleted() && newScore(m).isMatchCompleted()
+	return m.isCurrentRoundCompleted() && newMatchStats(m).isMatchCompleted()
 }

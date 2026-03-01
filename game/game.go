@@ -5,8 +5,8 @@ import (
 )
 
 type Game struct {
-	match      match
-	gameEvents []GameEvent
+	match       match
+	matchEvents []MatchEvent
 }
 
 func NewGame(p1, p2, p3, p4 Player, t1, t2 Team, ai1, ai2, ai3, ai4 bool) Game {
@@ -19,16 +19,16 @@ func NewGame(p1, p2, p3, p4 Player, t1, t2 Team, ai1, ai2, ai3, ai4 bool) Game {
 	return game
 }
 
-func (g *Game) StartMatch() []GameEvent {
-	g.addGameEvent(MatchStartedEvent)
+func (g *Game) StartMatch() []MatchEvent {
+	g.addMatchEvent(MatchStartedEvent)
 
 	g.startNextRound()
 	g.applyAiActions()
 
-	return g.clearGameEvents()
+	return g.clearMatchEvents()
 }
 
-func (g *Game) Apply(action Action) (ActionResult, []GameEvent) {
+func (g *Game) Apply(action Action) (ActionResult, []MatchEvent) {
 	actRes := g.apply(action)
 
 	if actRes.Succeeded {
@@ -37,11 +37,11 @@ func (g *Game) Apply(action Action) (ActionResult, []GameEvent) {
 		return actRes, nil
 	}
 
-	return actRes, g.clearGameEvents()
+	return actRes, g.clearMatchEvents()
 }
 
-func (g *Game) GetState() GameState {
-	return newGameState(g)
+func (g *Game) MatchState() MatchState {
+	return g.match.state()
 }
 
 func (g *Game) apply(action Action) ActionResult {
@@ -93,7 +93,7 @@ func (g *Game) startNextRound() {
 		panic(err)
 	}
 
-	g.addGameEvent(RoundStartedEvent)
+	g.addMatchEvent(RoundStartedEvent)
 }
 
 func (g *Game) startNextTrick() {
@@ -101,7 +101,7 @@ func (g *Game) startNextTrick() {
 		panic(err)
 	}
 
-	g.addGameEvent(TrickStartedEvent)
+	g.addMatchEvent(TrickStartedEvent)
 }
 
 func (g *Game) assignTrump(suit Suit, player Player) error {
@@ -114,7 +114,7 @@ func (g *Game) assignTrump(suit Suit, player Player) error {
 		}
 	}
 
-	g.addGameEvent(TrumpAssignedEvent)
+	g.addMatchEvent(TrumpAssignedEvent)
 	g.startNextTrick()
 	return nil
 }
@@ -130,28 +130,28 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	}
 
 	if g.match.isMatchCompleted() {
-		g.addGameEvent(CardPlayedAndMatchCompletedEvent)
+		g.addMatchEvent(CardPlayedAndMatchCompletedEvent)
 	} else if g.match.isCurrentRoundCompleted() {
-		g.addGameEvent(CardPlayedAndRoundCompletedEvent)
+		g.addMatchEvent(CardPlayedAndRoundCompletedEvent)
 		g.startNextRound()
 	} else if g.match.isCurrentTrickCompleted() {
-		g.addGameEvent(CardPlayedAndTrickCompletedEvent)
+		g.addMatchEvent(CardPlayedAndTrickCompletedEvent)
 		g.startNextTrick()
 	} else {
-		g.addGameEvent(CardPlayedEvent)
+		g.addMatchEvent(CardPlayedEvent)
 	}
 
 	return nil
 }
 
-func (g *Game) addGameEvent(et EventType) {
-	g.gameEvents = append(g.gameEvents, newGameEvent(g, et))
+func (g *Game) addMatchEvent(et EventType) {
+	g.matchEvents = append(g.matchEvents, newMatchEvent(g.match, et))
 }
 
-func (g *Game) clearGameEvents() []GameEvent {
-	events := g.gameEvents
+func (g *Game) clearMatchEvents() []MatchEvent {
+	events := g.matchEvents
 
-	g.gameEvents = nil
+	g.matchEvents = nil
 
 	return events
 }

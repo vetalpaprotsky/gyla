@@ -4,10 +4,54 @@ import (
 	"strings"
 )
 
+type Rank string
+
+type Suit string
+
 type Card struct {
 	Rank    Rank
 	Suit    Suit
 	IsTrump bool
+}
+
+// TODO: We could store them as bites(chars)
+const (
+	SixRank   = Rank("6")
+	SevenRank = Rank("7")
+	EightRank = Rank("8")
+	NineRank  = Rank("9")
+	TenRank   = Rank("10")
+	JackRank  = Rank("J")
+	QueenRank = Rank("Q")
+	KingRank  = Rank("K")
+	AceRank   = Rank("A")
+)
+
+var validRanks = [9]Rank{
+	SixRank,
+	SevenRank,
+	EightRank,
+	NineRank,
+	TenRank,
+	JackRank,
+	QueenRank,
+	KingRank,
+	AceRank,
+}
+
+// TODO: We could store them as bites(chars)
+const (
+	ClubsSuit    = Suit("C")
+	SpadesSuit   = Suit("S")
+	HeartsSuit   = Suit("H")
+	DiamondsSuit = Suit("D")
+)
+
+var validSuits = [4]Suit{
+	ClubsSuit,
+	SpadesSuit,
+	HeartsSuit,
+	DiamondsSuit,
 }
 
 func (s Suit) isValid() bool {

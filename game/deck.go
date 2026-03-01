@@ -25,14 +25,14 @@ func newDeck() deck {
 
 // TODO: If one hand has four 7, or four 6, and we need to re-deal the cards.
 // It's not allowed by the game rules.
-func (d deck) deal(t table) []hand {
+func (d deck) deal(t Table) []Hand {
 	players := t.players()
-	hands := make([]hand, playersCount)
+	hands := make([]Hand, playersCount)
 
 	for i := range players {
 		start := i * cardsInHandCount
 		end := start + cardsInHandCount
-		hands[i] = hand{player: players[i], cards: d.cards[start:end]}
+		hands[i] = Hand{Player: players[i], Cards: d.cards[start:end]}
 	}
 
 	return hands

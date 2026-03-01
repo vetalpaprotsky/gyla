@@ -14,14 +14,14 @@ const (
 
 type EventType string
 
-type GameEvent struct {
-	EventType EventType
-	GameState GameState
+type MatchEvent struct {
+	EventType  EventType
+	MatchState MatchState
 }
 
-func newGameEvent(g *Game, et EventType) GameEvent {
-	return GameEvent{
-		EventType: et,
-		GameState: newGameState(g),
+func newMatchEvent(m match, et EventType) MatchEvent {
+	return MatchEvent{
+		EventType:  et,
+		MatchState: m.state(),
 	}
 }
