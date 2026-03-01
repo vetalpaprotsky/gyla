@@ -9,13 +9,6 @@ type hand struct {
 	cards  []Card
 }
 
-func (h hand) deepCopy() hand {
-	return hand{
-		player: h.player,
-		cards:  append([]Card{}, h.cards...),
-	}
-}
-
 func (h *hand) removeCard(card Card) bool {
 	if !slices.Contains(h.cards, card) {
 		return false

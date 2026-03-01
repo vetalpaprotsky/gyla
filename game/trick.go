@@ -7,16 +7,6 @@ type trick struct {
 	playedCards []PlayedCard
 }
 
-// TODO: Remove me.
-func (t trick) deepCopy() trick {
-	return trick{
-		number:      t.number,
-		starter:     t.starter,
-		table:       t.table,
-		playedCards: []PlayedCard{},
-	}
-}
-
 func newFirstTrick(starter Player, table table) trick {
 	return trick{
 		number:      1,

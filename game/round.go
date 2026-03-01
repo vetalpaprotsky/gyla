@@ -14,27 +14,6 @@ type round struct {
 	trumpedWithSix bool
 }
 
-func (r round) deepCopy() round {
-	hands := make([]hand, 0, len(r.hands))
-	for _, h := range r.hands {
-		hands = append(hands, h.deepCopy())
-	}
-
-	tricks := make([]trick, 0, len(r.tricks))
-	for _, t := range r.tricks {
-		tricks = append(tricks, t.deepCopy())
-	}
-
-	return round{
-		number:  r.number,
-		hands:   hands,
-		tricks:  tricks,
-		trump:   r.trump,
-		starter: r.starter,
-		table:   r.table,
-	}
-}
-
 // TODO: When score of the starter team goes over 30, then their teammate must
 // start the next round. One player can't assign trumps always.
 func newRound(curRound round) (round, error) {
