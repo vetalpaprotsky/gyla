@@ -1,5 +1,7 @@
 package game
 
+import "fmt"
+
 type MatchStats struct {
 	Team1   Team
 	Team2   Team
@@ -18,7 +20,7 @@ func newMatchStats(m match) MatchStats {
 
 	for _, round := range m.rounds {
 		winTeam := round.winTeam()
-		if winTeam == Team("") {
+		if winTeam.IsZero() {
 			continue
 		}
 
@@ -33,7 +35,7 @@ func newMatchStats(m match) MatchStats {
 		case stats.Team2:
 			stats.Points2 += pointsToAdd
 		default:
-			panic("unknown team: " + winTeam)
+			panic(fmt.Sprintf("unknown team: %v", winTeam))
 		}
 	}
 
@@ -47,5 +49,5 @@ func newMatchStats(m match) MatchStats {
 }
 
 func (s MatchStats) isMatchCompleted() bool {
-	return s.WinTeam != Team("")
+	return !s.WinTeam.IsZero()
 }

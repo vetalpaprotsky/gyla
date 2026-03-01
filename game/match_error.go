@@ -74,27 +74,27 @@ func newTooManyRoundsPerMatchError() matchError {
 func newInvalidRankError(rank Rank) matchError {
 	return matchError{
 		invalidRankError,
-		fmt.Sprintf("rank %s is invalid", rank),
+		fmt.Sprintf("rank %v is invalid", rank),
 	}
 }
 
 func newInvalidSuitError(suit Suit) matchError {
 	return matchError{
 		invalidSuitError,
-		fmt.Sprintf("suit %s is invalid", suit),
+		fmt.Sprintf("suit %v is invalid", suit),
 	}
 }
 
 func newHandNotFoundError(player Player) matchError {
 	return matchError{
-		handNotFoundError, fmt.Sprintf("player %s hand not found", player),
+		handNotFoundError, fmt.Sprintf("player %v hand not found", player),
 	}
 }
 
 func newInvalidCardForPlayError(player Player, card Card) matchError {
 	return matchError{
 		invalidCardForPlayError,
-		fmt.Sprintf("player %s cannot play card %v", player, card),
+		fmt.Sprintf("player %v cannot play card %v", player, card),
 	}
 }
 
@@ -108,7 +108,7 @@ func newUnexpectedPlayerError(actual Player, expected Player) matchError {
 	return matchError{
 		unexpectedPlayerError,
 		fmt.Sprintf(
-			"expected player %s to play, not %s", expected, actual,
+			"expected player %v to play, not %v", expected, actual,
 		),
 	}
 }
@@ -117,7 +117,7 @@ func newRepeatedTrumpAssignmentError(trump Suit, currentTrump Suit) matchError {
 	return matchError{
 		repeatedTrumpAssignmentError,
 		fmt.Sprintf(
-			"cannot assign trump %s: already assigned to %s",
+			"cannot assign trump %v: already assigned to %v",
 			trump, currentTrump,
 		),
 	}
@@ -126,7 +126,7 @@ func newRepeatedTrumpAssignmentError(trump Suit, currentTrump Suit) matchError {
 func newInvalidTrumpError(trump Suit) matchError {
 	return matchError{
 		invalidTrumpError,
-		fmt.Sprintf("trump %s is invalid", trump),
+		fmt.Sprintf("trump %v is invalid", trump),
 	}
 }
 
@@ -134,7 +134,7 @@ func newUnexpectedTrumperError(actual Player, expected Player) matchError {
 	return matchError{
 		unexpectedTrumperError,
 		fmt.Sprintf(
-			"%s cannot assign trump: %s must do it", actual, expected,
+			"%v cannot assign trump: %v must do it", actual, expected,
 		),
 	}
 }

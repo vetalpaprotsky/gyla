@@ -1,18 +1,17 @@
 package game
 
-type Rank string
+type Rank int
 
-// TODO: We could store them as bites(chars)
 const (
-	SixRank   = Rank("6")
-	SevenRank = Rank("7")
-	EightRank = Rank("8")
-	NineRank  = Rank("9")
-	TenRank   = Rank("10")
-	JackRank  = Rank("J")
-	QueenRank = Rank("Q")
-	KingRank  = Rank("K")
-	AceRank   = Rank("A")
+	SixRank   = 1
+	SevenRank = 2
+	EightRank = 3
+	NineRank  = 4
+	TenRank   = 5
+	JackRank  = 6
+	QueenRank = 7
+	KingRank  = 8
+	AceRank   = 9
 )
 
 var validRanks = [9]Rank{
@@ -25,6 +24,10 @@ var validRanks = [9]Rank{
 	QueenRank,
 	KingRank,
 	AceRank,
+}
+
+func (s Rank) IsZero() bool {
+	return s == Rank(0)
 }
 
 func (r Rank) isValid() bool {

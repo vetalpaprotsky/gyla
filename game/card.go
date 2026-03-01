@@ -1,5 +1,16 @@
 package game
 
+const (
+	sevenOfClubs    = int(SevenRank) + int(ClubsSuit)
+	sevenOfSpades   = int(SevenRank) + int(SpadesSuit)
+	sevenOfHearts   = int(SevenRank) + int(HeartsSuit)
+	sevenOfDiamonds = int(SevenRank) + int(DiamondsSuit)
+	jackOfClubs     = int(JackRank) + int(ClubsSuit)
+	jackOfSpades    = int(JackRank) + int(SpadesSuit)
+	jackOfHearts    = int(JackRank) + int(HeartsSuit)
+	jackOfDiamonds  = int(JackRank) + int(DiamondsSuit)
+)
+
 type Card struct {
 	Rank    Rank
 	Suit    Suit
@@ -30,22 +41,22 @@ func (c Card) level() int {
 	var level int
 
 	if c.isDefaultTrump() {
-		switch c.rankAndSuit() {
-		case string(SevenRank) + string(ClubsSuit):
+		switch c.id() {
+		case sevenOfClubs:
 			level = 21
-		case string(SevenRank) + string(SpadesSuit):
+		case sevenOfSpades:
 			level = 20
-		case string(SevenRank) + string(HeartsSuit):
+		case sevenOfHearts:
 			level = 19
-		case string(SevenRank) + string(DiamondsSuit):
+		case sevenOfDiamonds:
 			level = 18
-		case string(JackRank) + string(ClubsSuit):
+		case jackOfClubs:
 			level = 17
-		case string(JackRank) + string(SpadesSuit):
+		case jackOfSpades:
 			level = 16
-		case string(JackRank) + string(HeartsSuit):
+		case jackOfHearts:
 			level = 15
-		case string(JackRank) + string(DiamondsSuit):
+		case jackOfDiamonds:
 			level = 14
 		}
 	} else if c.IsTrump {
@@ -87,6 +98,6 @@ func (c Card) level() int {
 	return level
 }
 
-func (c Card) rankAndSuit() string {
-	return string(c.Rank) + string(c.Suit)
+func (c Card) id() int {
+	return int(c.Rank) + int(c.Suit)
 }

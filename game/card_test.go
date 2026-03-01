@@ -13,12 +13,12 @@ func TestNewCard(t *testing.T) {
 		want    Card
 		wantErr error
 	}{
-		{"10", "H", Card{Rank: "10", Suit: "H", IsTrump: false}, nil},
-		{"K", "S", Card{Rank: "K", Suit: "S", IsTrump: false}, nil},
-		{"7", "C", Card{Rank: "7", Suit: "C", IsTrump: true}, nil},
-		{"J", "D", Card{Rank: "J", Suit: "D", IsTrump: true}, nil},
-		{"5", "S", Card{}, newInvalidRankError(Rank("5"))},
-		{"Q", "K", Card{}, newInvalidSuitError(Suit("K"))},
+		{TenRank, HeartsSuit, Card{Rank: TenRank, Suit: HeartsSuit, IsTrump: false}, nil},
+		{KingRank, SpadesSuit, Card{Rank: KingRank, Suit: SpadesSuit, IsTrump: false}, nil},
+		{SevenRank, ClubsSuit, Card{Rank: SevenRank, Suit: ClubsSuit, IsTrump: true}, nil},
+		{JackRank, DiamondsSuit, Card{Rank: JackRank, Suit: DiamondsSuit, IsTrump: true}, nil},
+		{Rank(99), SpadesSuit, Card{}, newInvalidRankError(Rank(99))},
+		{QueenRank, Suit(99), Card{}, newInvalidSuitError(Suit(99))},
 	}
 
 	for _, tt := range tests {
@@ -40,16 +40,16 @@ func TestLevel(t *testing.T) {
 		card Card
 		want int
 	}{
-		{Card{Rank: "Q", Suit: "H"}, 5},
-		{Card{Rank: "Q", Suit: "H", IsTrump: true}, 11},
-		{Card{Rank: "9", Suit: "C"}, 3},
-		{Card{Rank: "9", Suit: "C", IsTrump: true}, 9},
-		{Card{Rank: "6", Suit: "S"}, 1},
-		{Card{Rank: "6", Suit: "S", IsTrump: true}, 22},
-		{Card{Rank: "7", Suit: "H"}, 19},
-		{Card{Rank: "7", Suit: "H", IsTrump: true}, 19},
-		{Card{Rank: "J", Suit: "D"}, 14},
-		{Card{Rank: "J", Suit: "D", IsTrump: true}, 14},
+		{Card{Rank: QueenRank, Suit: HeartsSuit}, 5},
+		{Card{Rank: QueenRank, Suit: HeartsSuit, IsTrump: true}, 11},
+		{Card{Rank: NineRank, Suit: ClubsSuit}, 3},
+		{Card{Rank: NineRank, Suit: ClubsSuit, IsTrump: true}, 9},
+		{Card{Rank: SixRank, Suit: SpadesSuit}, 1},
+		{Card{Rank: SixRank, Suit: SpadesSuit, IsTrump: true}, 22},
+		{Card{Rank: SevenRank, Suit: HeartsSuit}, 19},
+		{Card{Rank: SevenRank, Suit: HeartsSuit, IsTrump: true}, 19},
+		{Card{Rank: JackRank, Suit: DiamondsSuit}, 14},
+		{Card{Rank: JackRank, Suit: DiamondsSuit, IsTrump: true}, 14},
 	}
 
 	for _, tt := range tests {

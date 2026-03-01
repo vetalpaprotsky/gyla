@@ -22,7 +22,7 @@ func newRound(curRound round) (round, error) {
 	}
 
 	winTeam := curRound.winTeam()
-	if winTeam == Team("") {
+	if winTeam.IsZero() {
 		return round{}, newNoRoundWinTeamError()
 	}
 
@@ -172,7 +172,7 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 		}
 	}
 
-	return Player(""), false
+	return Player(0), false
 }
 
 func (r round) playableCardsFor(player Player) []Card {
@@ -198,7 +198,7 @@ func (r round) isCompleted() bool {
 
 func (r round) winTeam() Team {
 	if !r.isCompleted() {
-		return Team("")
+		return Team(0)
 	}
 
 	starterTeam := r.starterTeam()
@@ -216,9 +216,9 @@ func (r round) winTeam() Team {
 			opponentTeamTricks += 1
 		default:
 			msg := fmt.Sprintf(
-				"team %s with player %s does not exist",
-				winner,
+				"team %v with player %v does not exist",
 				winnerTeam,
+				winner,
 			)
 			panic(msg)
 		}
@@ -234,7 +234,7 @@ func (r round) winTeam() Team {
 }
 
 func (r round) isTrumpAssigned() bool {
-	return r.trump != ""
+	return r.trump.IsZero()
 }
 
 func (r round) trumper() Player {
@@ -244,8 +244,8 @@ func (r round) trumper() Player {
 func (r round) starterTeam() Team {
 	team := r.table.getTeam(r.starter)
 
-	if team == Team("") {
-		panic(fmt.Sprintf("starter player %s team is missing", r.starter))
+	if team.IsZero() {
+		panic(fmt.Sprintf("starter player %v team is missing", r.starter))
 	}
 
 	return team
@@ -254,8 +254,8 @@ func (r round) starterTeam() Team {
 func (r round) starterOpponentTeam() Team {
 	team := r.table.getOpponentTeam(r.starter)
 
-	if team == Team("") {
-		panic(fmt.Sprintf("starter player %s opponent team is missing", r.starter))
+	if team.IsZero() {
+		panic(fmt.Sprintf("starter player %v opponent team is missing", r.starter))
 	}
 
 	return r.table.getOpponentTeam(r.starter)
@@ -264,8 +264,8 @@ func (r round) starterOpponentTeam() Team {
 func (r round) starterLeftOpponent() Player {
 	opponent := r.table.getLeftOpponent(r.starter)
 
-	if opponent == Player("") {
-		panic(fmt.Sprintf("starter player %s left opponent is missing", r.starter))
+	if opponent.IsZero() {
+		panic(fmt.Sprintf("starter player %v left opponent is missing", r.starter))
 	}
 
 	return opponent

@@ -69,7 +69,7 @@ func (g *Game) applyAiAction() bool {
 	actRes := g.apply(action)
 	if !actRes.Succeeded {
 		msg := fmt.Sprintf(
-			"ai %s action %s failed: %s",
+			"ai %v action %s failed: %s",
 			action.Player, action.Name, actRes.ErrorMsg,
 		)
 		panic(msg)

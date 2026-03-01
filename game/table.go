@@ -1,12 +1,5 @@
 package game
 
-type Player string
-type Team string
-type Seat struct {
-	Player Player
-	IsAI   bool
-}
-
 type Table struct {
 	Seat1 Seat
 	Seat2 Seat
@@ -34,7 +27,7 @@ func (t Table) getTeam(p Player) Team {
 	case t.Seat2.Player, t.Seat4.Player:
 		return t.Team2
 	default:
-		return Team("")
+		return Team(0)
 	}
 }
 
@@ -53,7 +46,7 @@ func (t Table) getLeftOpponent(p Player) Player {
 	case t.Seat4.Player:
 		return t.Seat1.Player
 	}
-	return Player("")
+	return Player(0)
 }
 
 func (t Table) getTeammate(p Player) Player {
@@ -67,7 +60,7 @@ func (t Table) getTeammate(p Player) Player {
 	case t.Seat4.Player:
 		return t.Seat2.Player
 	}
-	return Player("")
+	return Player(0)
 }
 
 func (t Table) getRightOpponent(p Player) Player {
@@ -81,7 +74,7 @@ func (t Table) getRightOpponent(p Player) Player {
 	case t.Seat4.Player:
 		return t.Seat3.Player
 	}
-	return Player("")
+	return Player(0)
 }
 
 func (t Table) getSeat(p Player) Seat {
@@ -133,6 +126,18 @@ func (t Table) ViewFor(p Player) TableView {
 	}
 }
 
+type Player int
+
+func (p Player) IsZero() bool {
+	return p == 0
+}
+
+type Team int
+
+func (t Team) IsZero() bool {
+	return t == 0
+}
+
 type TableView struct {
 	You           Seat
 	LeftOpponent  Seat
@@ -141,4 +146,9 @@ type TableView struct {
 
 	Team         Team
 	OpponentTeam Team
+}
+
+type Seat struct {
+	Player Player
+	IsAI   bool
 }

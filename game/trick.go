@@ -24,7 +24,7 @@ func newTrick(curTrick trick) (trick, error) {
 	}
 
 	winner := curTrick.winner()
-	if winner == Player("") {
+	if winner.IsZero() {
 		return trick{}, newNoTrickWinnerError()
 	}
 
@@ -49,7 +49,7 @@ func (t *trick) addCard(player Player, card Card) error {
 
 func (t trick) winner() Player {
 	if !t.isCompleted() {
-		return Player("")
+		return Player(0)
 	}
 
 	winPlayer := t.starter
@@ -104,7 +104,7 @@ func (t trick) isCompleted() bool {
 
 func (t trick) expectedNextPlayer() Player {
 	if t.isCompleted() {
-		return Player("")
+		return Player(0)
 	}
 
 	if t.isEmpty() {

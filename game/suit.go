@@ -1,13 +1,12 @@
 package game
 
-type Suit string
+type Suit int
 
-// TODO: We could store them as bites(chars)
 const (
-	ClubsSuit    = Suit("C")
-	SpadesSuit   = Suit("S")
-	HeartsSuit   = Suit("H")
-	DiamondsSuit = Suit("D")
+	ClubsSuit    = 10
+	SpadesSuit   = 20
+	HeartsSuit   = 30
+	DiamondsSuit = 40
 )
 
 var validSuits = [4]Suit{
@@ -15,6 +14,10 @@ var validSuits = [4]Suit{
 	SpadesSuit,
 	HeartsSuit,
 	DiamondsSuit,
+}
+
+func (s Suit) IsZero() bool {
+	return s == Suit(0)
 }
 
 func (s Suit) isValid() bool {
