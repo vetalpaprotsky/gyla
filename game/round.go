@@ -4,8 +4,6 @@ import (
 	"fmt"
 )
 
-// TODO: Hands must be implemented in a different way. Consider map instead of
-// slice.
 type round struct {
 	number         int
 	hands          []hand
@@ -53,6 +51,7 @@ func newRound(curRound round) (round, error) {
 		table:  curRound.table,
 		number: curRound.number + 1,
 		hands:  newDeck().deal(curRound.table),
+		tricks: make([]trick, 0, tricksPerRoundCount),
 	}
 
 	if winTeam == curRound.starterTeam() {
@@ -176,14 +175,7 @@ func (r round) currentTrick() *trick {
 		return nil
 	}
 
-	trick := &r.tricks[0]
-	for i := 1; i < len(r.tricks); i++ {
-		if r.tricks[i].number > trick.number {
-			trick = &r.tricks[i]
-		}
-	}
-
-	return trick
+	return &r.tricks[len(r.tricks)-1]
 }
 
 func (r round) getHand(player Player) *hand {

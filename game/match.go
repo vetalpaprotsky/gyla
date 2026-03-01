@@ -104,14 +104,7 @@ func (m match) currentRound() *round {
 		return nil
 	}
 
-	round := &m.rounds[0]
-	for i := 1; i < len(m.rounds); i++ {
-		if m.rounds[i].number > round.number {
-			round = &m.rounds[i]
-		}
-	}
-
-	return round
+	return &m.rounds[len(m.rounds)-1]
 }
 
 func (m match) currentTrick() *trick {

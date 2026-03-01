@@ -2,6 +2,7 @@ package game
 
 type Suit string
 
+// TODO: We could store them as bites(chars)
 const (
 	ClubsSuit    = Suit("C")
 	SpadesSuit   = Suit("S")

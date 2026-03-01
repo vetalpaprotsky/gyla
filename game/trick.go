@@ -1,27 +1,29 @@
 package game
 
-import (
-	"maps"
-)
-
 type trick struct {
-	number  int
-	starter Player
-	table   table
-	cards   map[Player]Card
+	number      int
+	starter     Player
+	table       table
+	playedCards []PlayedCard
 }
 
+// TODO: Remove me.
 func (t trick) deepCopy() trick {
 	return trick{
-		number:  t.number,
-		starter: t.starter,
-		table:   t.table,
-		cards:   maps.Clone(t.cards),
+		number:      t.number,
+		starter:     t.starter,
+		table:       t.table,
+		playedCards: []PlayedCard{},
 	}
 }
 
 func newFirstTrick(starter Player, table table) trick {
-	return trick{number: 1, starter: starter, table: table, cards: make(map[Player]Card)}
+	return trick{
+		number:      1,
+		starter:     starter,
+		table:       table,
+		playedCards: make([]PlayedCard, 0, playersCount),
+	}
 }
 
 func newTrick(curTrick trick) (trick, error) {
@@ -35,10 +37,10 @@ func newTrick(curTrick trick) (trick, error) {
 	}
 
 	return trick{
-		number:  curTrick.number + 1,
-		starter: winner,
-		table:   curTrick.table,
-		cards:   make(map[Player]Card),
+		number:      curTrick.number + 1,
+		starter:     winner,
+		table:       curTrick.table,
+		playedCards: make([]PlayedCard, 0, playersCount),
 	}, nil
 }
 
@@ -49,7 +51,7 @@ func (t *trick) addCard(player Player, card Card) error {
 		return newUnexpectedPlayerError(player, expPlr)
 	}
 
-	t.cards[player] = card
+	t.playedCards = append(t.playedCards, PlayedCard{Player: player, Card: card})
 	return nil
 }
 
@@ -59,23 +61,22 @@ func (t trick) winner() Player {
 	}
 
 	winPlayer := t.starter
-	firstCard := t.firstCard()
-	winCard := firstCard
+	winCard := t.firstCard()
 
 	if t.hasAnyTrumps() {
-		for player, card := range t.cards {
-			if card.level() > winCard.level() {
-				winPlayer = player
-				winCard = card
+		for _, pc := range t.playedCards {
+			if pc.Card.level() > winCard.level() {
+				winPlayer = pc.Player
+				winCard = pc.Card
 			}
 		}
 	} else {
-		leadingSuit := firstCard.Suit
+		leadingSuit := t.firstCard().Suit
 
-		for player, card := range t.cards {
-			if card.Suit == leadingSuit && card.level() > winCard.level() {
-				winPlayer = player
-				winCard = card
+		for _, pc := range t.playedCards {
+			if pc.Card.Suit == leadingSuit && pc.Card.level() > winCard.level() {
+				winPlayer = pc.Player
+				winCard = pc.Card
 			}
 		}
 	}
@@ -84,12 +85,16 @@ func (t trick) winner() Player {
 }
 
 func (t trick) firstCard() Card {
-	return t.cards[t.starter]
+	if t.isEmpty() {
+		return Card{}
+	}
+
+	return t.playedCards[0].Card
 }
 
 func (t trick) hasAnyTrumps() bool {
-	for _, card := range t.cards {
-		if card.IsTrump {
+	for _, pc := range t.playedCards {
+		if pc.Card.IsTrump {
 			return true
 		}
 	}
@@ -98,11 +103,11 @@ func (t trick) hasAnyTrumps() bool {
 }
 
 func (t trick) isEmpty() bool {
-	return len(t.cards) == 0
+	return len(t.playedCards) == 0
 }
 
 func (t trick) isCompleted() bool {
-	return len(t.cards) == playersCount
+	return len(t.playedCards) == playersCount
 }
 
 func (t trick) expectedNextPlayer() Player {
@@ -114,11 +119,6 @@ func (t trick) expectedNextPlayer() Player {
 		return t.starter
 	}
 
-	player := t.starter
-	for {
-		player = t.table.getLeftOpponent(player)
-		if _, ok := t.cards[player]; !ok {
-			return player
-		}
-	}
+	lastPlayer := t.playedCards[len(t.playedCards)-1].Player
+	return t.table.getLeftOpponent(lastPlayer)
 }

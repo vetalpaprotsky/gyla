@@ -8,18 +8,18 @@ package game
 // I think we should just store match field hear, and provide any kind of
 // needed methods to get some info.
 type score struct {
-	points map[Team]int
+	team1   Team
+	team2   Team
+	points1 int
+	points2 int
 }
 
 // TODO: When loser team has no tricks, or has one trick, the number of added
 // points must be different.
 func newScore(m match) score {
-	teams := m.table.getTeams()
 	score := score{
-		points: map[Team]int{
-			teams[0]: 0,
-			teams[1]: 0,
-		},
+		team1: m.table.team1,
+		team2: m.table.team2,
 	}
 
 	for _, round := range m.rounds {
@@ -33,19 +33,21 @@ func newScore(m match) score {
 			pointsToAdd = 12
 		}
 
-		score.points[winTeam] += pointsToAdd
+		switch winTeam {
+		case score.team1:
+			score.points1 += pointsToAdd
+		case score.team2:
+			score.points2 += pointsToAdd
+		default:
+			panic("unknown team: " + winTeam)
+		}
 	}
 
 	return score
 }
 
 func (s score) isMatchCompleted() bool {
-	for _, pts := range s.points {
-		if pts >= 60 {
-			return true
-		}
-	}
-	return false
+	return s.points1 >= 60 || s.points2 >= 60
 }
 
 func (s score) winTeam() Team {
@@ -53,13 +55,9 @@ func (s score) winTeam() Team {
 		return Team("")
 	}
 
-	var winner Team
-	maxPoints := 0
-	for team, pts := range s.points {
-		if pts > maxPoints {
-			maxPoints = pts
-			winner = team
-		}
+	if s.points1 > s.points2 {
+		return s.team1
+	} else {
+		return s.team2
 	}
-	return winner
 }
