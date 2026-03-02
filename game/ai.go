@@ -2,10 +2,9 @@ package game
 
 import "math/rand/v2"
 
-func getAIAction(match match) Action {
-	table := match.table
-	curRound := match.currentRound()
-	if !curRound.isTrumpAssigned() && table.isAI(curRound.trumper()) {
+func getAIAction(g *Game) Action {
+	curRound := g.match.currentRound()
+	if !curRound.isTrumpAssigned() && g.isAI(curRound.trumper()) {
 		return Action{
 			Name:   AssignTrumpAction,
 			Player: curRound.trumper(),
@@ -16,7 +15,7 @@ func getAIAction(match match) Action {
 	curTrick := curRound.currentTrick()
 	if curTrick != nil {
 		player := curTrick.expectedNextPlayer()
-		if table.isAI(player) {
+		if g.isAI(player) {
 			card := getRandomCard(*curRound, player)
 			return Action{
 				Name:   PlayCardAction,
@@ -37,5 +36,5 @@ func getRandomCard(r round, p Player) Card {
 }
 
 func randomSuit() Suit {
-	return validSuits[rand.IntN(4)]
+	return allSuits[rand.IntN(4)]
 }

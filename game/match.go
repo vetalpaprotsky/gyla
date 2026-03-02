@@ -10,7 +10,6 @@ package game
 // 7. If match isn't completed, go to step 1.
 // 8. Match is completed.
 type match struct {
-	table  Table
 	rounds []round
 }
 
@@ -23,7 +22,7 @@ func (m *match) startNextRound() error {
 	var err error
 
 	if curRound := m.currentRound(); curRound == nil {
-		round = newFirstRound(m.table)
+		round = newFirstRound()
 	} else {
 		round, err = newRound(*curRound)
 	}
@@ -128,38 +127,46 @@ func (m match) isMatchCompleted() bool {
 
 func (m match) state() MatchState {
 	curRound := m.currentRound()
-	stats := newMatchStats(m)
 
 	if curRound == nil {
-		return MatchState{
-			Table: m.table,
-			Stats: stats,
-		}
+		return MatchState{}
 	}
 
 	return MatchState{
-		Table: m.table,
 		Round: curRound.state(),
-		Stats: stats,
+		Stats: newMatchStats(m),
 	}
 }
 
 type MatchState struct {
-	Table Table
 	Round RoundState
 	Stats MatchStats
 }
 
 func (ms MatchState) ViewFor(p Player) MatchView {
 	return MatchView{
-		Table: ms.Table.ViewFor(p),
+		You:           p,
+		LeftOpponent:  p.leftOpponent(),
+		Teammate:      p.teammate(),
+		RightOpponent: p.rightOpponent(),
+
+		Team:         p.team(),
+		OpponentTeam: p.opponentTeam(),
+
 		Round: ms.Round.ViewFor(p),
 		Stats: ms.Stats,
 	}
 }
 
 type MatchView struct {
-	Table TableView
+	You           Player
+	LeftOpponent  Player
+	Teammate      Player
+	RightOpponent Player
+
+	Team         Team
+	OpponentTeam Team
+
 	Round RoundView
 	Stats MatchStats
 }

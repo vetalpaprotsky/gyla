@@ -3,14 +3,42 @@ package game
 import "fmt"
 
 type Game struct {
-	match       match
-	matchEvents []MatchEvent
+	match        match
+	matchEvents  []MatchEvent
+	Participants []Participant
 }
 
-func NewGame(p1, p2, p3, p4 Player, t1, t2 Team, ai1, ai2, ai3, ai4 bool) Game {
+func NewGame(p1, p2, p3, p4 string, t1, t2 string, ai1, ai2, ai3, ai4 bool) Game {
 	game := Game{
-		match: match{
-			table: newTable(p1, p2, p3, p4, t1, t2, ai1, ai2, ai3, ai4),
+		Participants: []Participant{
+			Participant{
+				Player:     Player1,
+				Team:       Team1,
+				PlayerName: p1,
+				TeamName:   t1,
+				IsAI:       ai1,
+			},
+			Participant{
+				Player:     Player2,
+				Team:       Team2,
+				PlayerName: p2,
+				TeamName:   t2,
+				IsAI:       ai2,
+			},
+			Participant{
+				Player:     Player3,
+				Team:       Team1,
+				PlayerName: p3,
+				TeamName:   t1,
+				IsAI:       ai3,
+			},
+			Participant{
+				Player:     Player4,
+				Team:       Team2,
+				PlayerName: p4,
+				TeamName:   t2,
+				IsAI:       ai4,
+			},
 		},
 	}
 
@@ -61,7 +89,7 @@ func (g *Game) apply(action Action) ActionResult {
 }
 
 func (g *Game) applyAiAction() bool {
-	action := getAIAction(g.match)
+	action := getAIAction(g)
 	if action.Name == "" {
 		return false
 	}
@@ -152,4 +180,14 @@ func (g *Game) clearMatchEvents() []MatchEvent {
 	g.matchEvents = nil
 
 	return events
+}
+
+func (g *Game) isAI(p Player) bool {
+	for _, participant := range g.Participants {
+		if participant.Player == p {
+			return participant.IsAI
+		}
+	}
+
+	return false
 }

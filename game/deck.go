@@ -2,9 +2,8 @@ package game
 
 import "math/rand"
 
-const cardsCount = len(validRanks) * len(validSuits)
-const playersCount = 4
-const cardsPerPlayerCount = cardsCount / playersCount
+const cardsCount = len(allRanks) * len(allSuits)
+const cardsPerPlayerCount = cardsCount / len(allPlayers)
 
 type deck struct {
 	cards []Card
@@ -15,8 +14,8 @@ func newDeck() deck {
 	cards := make([]Card, cardsCount)
 	k := 0
 
-	for _, r := range validRanks {
-		for _, s := range validSuits {
+	for _, r := range allRanks {
+		for _, s := range allSuits {
 			randInx := shuffledIndexes[k]
 			card, _ := newCard(r, s) // safe to ignore error
 			cards[randInx] = card
@@ -29,14 +28,13 @@ func newDeck() deck {
 
 // TODO: If one hand has four 7, or four 6, and we need to re-deal the cards.
 // It's not allowed by the game rules.
-func (d deck) deal(t Table) []Hand {
-	players := t.players()
-	hands := make([]Hand, playersCount)
+func (d deck) deal() []Hand {
+	hands := make([]Hand, len(allPlayers))
 
-	for i := range players {
+	for i := range allPlayers {
 		start := i * cardsPerPlayerCount
 		end := start + cardsPerPlayerCount
-		hands[i] = Hand{Player: players[i], Cards: d.cards[start:end]}
+		hands[i] = Hand{Player: allPlayers[i], Cards: d.cards[start:end]}
 	}
 
 	return hands

@@ -11,7 +11,6 @@ type round struct {
 	trump          Suit
 	hands          []Hand
 	tricks         []trick
-	table          Table
 }
 
 // TODO: When score of the starter team goes over 30, then their teammate must
@@ -22,14 +21,13 @@ func newRound(curRound round) (round, error) {
 	}
 
 	winTeam := curRound.winTeam()
-	if winTeam.IsZero() {
+	if winTeam.isZero() {
 		return round{}, newNoRoundWinTeamError()
 	}
 
 	round := round{
-		table:  curRound.table,
 		number: curRound.number + 1,
-		hands:  newDeck().deal(curRound.table),
+		hands:  newDeck().deal(),
 		tricks: make([]trick, 0, tricksPerRoundCount),
 	}
 
@@ -42,8 +40,8 @@ func newRound(curRound round) (round, error) {
 	return round, nil
 }
 
-func newFirstRound(t Table) round {
-	round := round{table: t, number: 1, hands: newDeck().deal(t)}
+func newFirstRound() round {
+	round := round{number: 1, hands: newDeck().deal()}
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
@@ -60,7 +58,7 @@ func (r *round) startNextTrick() error {
 
 	if curTrick := r.currentTrick(); curTrick == nil {
 		if r.isTrumpAssigned() {
-			trick = newFirstTrick(r.starter, r.table)
+			trick = newFirstTrick(r.starter)
 		} else {
 			err = newNoTrumpAssignedError()
 		}
@@ -81,13 +79,7 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 		return newRepeatedTrumpAssignmentError(trump, r.trump)
 	}
 
-	trumpIsValid := false
-	for _, validSuit := range validSuits {
-		if trump == validSuit {
-			trumpIsValid = true
-		}
-	}
-	if !trumpIsValid {
+	if !trump.isValid() {
 		return newInvalidTrumpError(trump)
 	}
 
@@ -209,7 +201,7 @@ func (r round) winTeam() Team {
 	for _, trick := range r.tricks {
 		winner := trick.winner()
 
-		switch winnerTeam := r.table.getTeam(winner); winnerTeam {
+		switch winner.team() {
 		case starterTeam:
 			starterTeamTricks += 1
 		case opponentTeam:
@@ -217,7 +209,7 @@ func (r round) winTeam() Team {
 		default:
 			msg := fmt.Sprintf(
 				"team %v with player %v does not exist",
-				winnerTeam,
+				winner.team(),
 				winner,
 			)
 			panic(msg)
@@ -234,7 +226,7 @@ func (r round) winTeam() Team {
 }
 
 func (r round) isTrumpAssigned() bool {
-	return r.trump.IsZero()
+	return r.trump.isZero()
 }
 
 func (r round) trumper() Player {
@@ -242,9 +234,9 @@ func (r round) trumper() Player {
 }
 
 func (r round) starterTeam() Team {
-	team := r.table.getTeam(r.starter)
+	team := r.starter.team()
 
-	if team.IsZero() {
+	if team.isZero() {
 		panic(fmt.Sprintf("starter player %v team is missing", r.starter))
 	}
 
@@ -252,19 +244,19 @@ func (r round) starterTeam() Team {
 }
 
 func (r round) starterOpponentTeam() Team {
-	team := r.table.getOpponentTeam(r.starter)
+	team := r.starter.opponentTeam()
 
-	if team.IsZero() {
+	if team.isZero() {
 		panic(fmt.Sprintf("starter player %v opponent team is missing", r.starter))
 	}
 
-	return r.table.getOpponentTeam(r.starter)
+	return team
 }
 
 func (r round) starterLeftOpponent() Player {
-	opponent := r.table.getLeftOpponent(r.starter)
+	opponent := r.starter.leftOpponent()
 
-	if opponent.IsZero() {
+	if opponent.isZero() {
 		panic(fmt.Sprintf("starter player %v left opponent is missing", r.starter))
 	}
 
@@ -290,7 +282,6 @@ func (r round) state() RoundState {
 		Hands:          hands,
 		Tricks:         tricks,
 		WinTeam:        r.winTeam(),
-		Table:          r.table,
 	}
 }
 
@@ -302,7 +293,6 @@ type RoundState struct {
 	Hands          []Hand
 	Tricks         []TrickState
 	WinTeam        Team
-	Table          Table
 }
 
 func (rs RoundState) getHand(p Player) Hand {
@@ -322,9 +312,9 @@ func (rs RoundState) ViewFor(p Player) RoundView {
 		TrumpedWithSix:    rs.TrumpedWithSix,
 		Trump:             rs.Trump,
 		Hand:              rs.getHand(p),
-		LeftOpponentHand:  len(rs.getHand(rs.Table.getLeftOpponent(p)).Cards),
-		TeammateHand:      len(rs.getHand(rs.Table.getTeammate(p)).Cards),
-		RightOpponentHand: len(rs.getHand(rs.Table.getRightOpponent(p)).Cards),
+		LeftOpponentHand:  len(rs.getHand(p.leftOpponent()).Cards),
+		TeammateHand:      len(rs.getHand(p.teammate()).Cards),
+		RightOpponentHand: len(rs.getHand(p.rightOpponent()).Cards),
 		Tricks:            rs.Tricks,
 		WinTeam:           rs.WinTeam,
 	}

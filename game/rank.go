@@ -3,18 +3,18 @@ package game
 type Rank int
 
 const (
-	SixRank   = 1
-	SevenRank = 2
-	EightRank = 3
-	NineRank  = 4
-	TenRank   = 5
-	JackRank  = 6
-	QueenRank = 7
-	KingRank  = 8
-	AceRank   = 9
+	SixRank   = Rank(1)
+	SevenRank = Rank(2)
+	EightRank = Rank(3)
+	NineRank  = Rank(4)
+	TenRank   = Rank(5)
+	JackRank  = Rank(6)
+	QueenRank = Rank(7)
+	KingRank  = Rank(8)
+	AceRank   = Rank(9)
 )
 
-var validRanks = [9]Rank{
+var allRanks = [9]Rank{
 	SixRank,
 	SevenRank,
 	EightRank,
@@ -26,13 +26,13 @@ var validRanks = [9]Rank{
 	AceRank,
 }
 
-func (s Rank) IsZero() bool {
+func (s Rank) isZero() bool {
 	return s == Rank(0)
 }
 
 func (r Rank) isValid() bool {
-	for _, validRank := range validRanks {
-		if r == validRank {
+	for _, rank := range allRanks {
+		if r == rank {
 			return true
 		}
 	}

@@ -5,16 +5,14 @@ const tricksPerRoundCount = 9
 type trick struct {
 	number      int
 	starter     Player
-	table       Table
 	playedCards []PlayedCard
 }
 
-func newFirstTrick(starter Player, table Table) trick {
+func newFirstTrick(starter Player) trick {
 	return trick{
 		number:      1,
 		starter:     starter,
-		table:       table,
-		playedCards: make([]PlayedCard, 0, playersCount),
+		playedCards: make([]PlayedCard, 0, len(allPlayers)),
 	}
 }
 
@@ -24,15 +22,14 @@ func newTrick(curTrick trick) (trick, error) {
 	}
 
 	winner := curTrick.winner()
-	if winner.IsZero() {
+	if winner.isZero() {
 		return trick{}, newNoTrickWinnerError()
 	}
 
 	return trick{
 		number:      curTrick.number + 1,
 		starter:     winner,
-		table:       curTrick.table,
-		playedCards: make([]PlayedCard, 0, playersCount),
+		playedCards: make([]PlayedCard, 0, len(allPlayers)),
 	}, nil
 }
 
@@ -99,7 +96,7 @@ func (t trick) isEmpty() bool {
 }
 
 func (t trick) isCompleted() bool {
-	return len(t.playedCards) == playersCount
+	return len(t.playedCards) == len(allPlayers)
 }
 
 func (t trick) expectedNextPlayer() Player {
@@ -112,7 +109,7 @@ func (t trick) expectedNextPlayer() Player {
 	}
 
 	lastPlayer := t.playedCards[len(t.playedCards)-1].Player
-	return t.table.getLeftOpponent(lastPlayer)
+	return lastPlayer.leftOpponent()
 }
 
 func (t trick) state() TrickState {

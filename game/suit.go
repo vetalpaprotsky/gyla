@@ -3,26 +3,26 @@ package game
 type Suit int
 
 const (
-	ClubsSuit    = 10
-	SpadesSuit   = 20
-	HeartsSuit   = 30
-	DiamondsSuit = 40
+	ClubsSuit    = Suit(10)
+	SpadesSuit   = Suit(20)
+	HeartsSuit   = Suit(30)
+	DiamondsSuit = Suit(40)
 )
 
-var validSuits = [4]Suit{
+var allSuits = [4]Suit{
 	ClubsSuit,
 	SpadesSuit,
 	HeartsSuit,
 	DiamondsSuit,
 }
 
-func (s Suit) IsZero() bool {
+func (s Suit) isZero() bool {
 	return s == Suit(0)
 }
 
 func (s Suit) isValid() bool {
-	for _, validSuit := range validSuits {
-		if s == validSuit {
+	for _, suit := range allSuits {
+		if s == suit {
 			return true
 		}
 	}
