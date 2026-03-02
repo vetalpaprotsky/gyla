@@ -134,8 +134,8 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 		return err
 	}
 
-	if ok := hand.removeCard(card); !ok {
-		panic("could not remove card from hand")
+	if ok := hand.playCard(card); !ok {
+		panic("could not play card")
 	}
 
 	return nil

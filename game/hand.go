@@ -7,7 +7,7 @@ type Hand struct {
 	Cards  []Card
 }
 
-func (h *Hand) removeCard(card Card) bool {
+func (h *Hand) playCard(card Card) bool {
 	if !slices.Contains(h.Cards, card) {
 		return false
 	}
