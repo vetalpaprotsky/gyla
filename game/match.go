@@ -139,7 +139,7 @@ func (m match) state() MatchState {
 
 	return MatchState{
 		Table: m.table,
-		Round: m.currentRound().state(),
+		Round: curRound.state(),
 		Stats: stats,
 	}
 }
