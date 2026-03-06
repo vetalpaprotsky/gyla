@@ -3,9 +3,8 @@ package game
 import "fmt"
 
 // TODO: Store info about every round:
-//
-//	points per team, trumper, tricks per player, tricks per team.
-type MatchStats struct {
+// points per team, trumper, tricks per player, tricks per team.
+type GameStats struct {
 	Team1Points int
 	Team2Points int
 	WinTeam     Team
@@ -13,10 +12,10 @@ type MatchStats struct {
 
 // TODO: When loser team has no tricks, or has one trick, the number of added
 // points must be different.
-func newMatchStats(m match) MatchStats {
-	stats := MatchStats{}
+func newGameStats(g Game) GameStats {
+	stats := GameStats{}
 
-	for _, round := range m.rounds {
+	for _, round := range g.rounds {
 		winTeam := round.winTeam()
 		if winTeam.isZero() {
 			continue
@@ -46,6 +45,7 @@ func newMatchStats(m match) MatchStats {
 	return stats
 }
 
-func (s MatchStats) isMatchCompleted() bool {
-	return !s.WinTeam.isZero()
+func (gs GameStats) deepCopy() GameStats {
+	// TODO: When we have an array of stats for each round.
+	return gs
 }

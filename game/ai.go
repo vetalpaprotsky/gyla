@@ -1,10 +1,39 @@
 package game
 
-import "math/rand/v2"
+import (
+	"fmt"
+	"math/rand/v2"
+)
+
+func applyAIActions(g *Game) {
+	for {
+		if !applyAIAction(g) {
+			return
+		}
+	}
+}
+
+func applyAIAction(g *Game) bool {
+	action := getAIAction(g)
+	if action.Name == "" {
+		return false
+	}
+
+	err := g.apply(action)
+	if err != nil {
+		msg := fmt.Sprintf(
+			"ai %v action %s failed: %s", action.Player, action.Name, err,
+		)
+		panic(msg)
+	}
+
+	return true
+}
 
 func getAIAction(g *Game) Action {
-	curRound := g.match.currentRound()
-	if !curRound.isTrumpAssigned() && g.isAI(curRound.trumper()) {
+	curRound := g.mustCurrentRound()
+
+	if !curRound.isTrumpAssigned() && g.getParticipant(curRound.trumper()).IsAI {
 		return Action{
 			Name:   AssignTrumpAction,
 			Player: curRound.trumper(),
@@ -15,7 +44,7 @@ func getAIAction(g *Game) Action {
 	curTrick := curRound.currentTrick()
 	if curTrick != nil {
 		player := curTrick.expectedNextPlayer()
-		if g.isAI(player) {
+		if g.getParticipant(player).IsAI {
 			card := getRandomCard(*curRound, player)
 			return Action{
 				Name:   PlayCardAction,

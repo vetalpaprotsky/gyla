@@ -11,8 +11,3 @@ type Action struct {
 	Rank   Rank
 	Suit   Suit
 }
-
-type ActionResult struct {
-	ErrorMsg  string
-	Succeeded bool
-}

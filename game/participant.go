@@ -6,4 +6,5 @@ type Participant struct {
 	PlayerName string
 	TeamName   string
 	IsAI       bool
+	ExternalID string
 }

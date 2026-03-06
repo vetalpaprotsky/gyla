@@ -3,41 +3,30 @@ package game
 import "fmt"
 
 type Game struct {
-	match        match
-	matchEvents  []MatchEvent
-	Participants []Participant
+	rounds       []round
+	eventsQueue  []GameEvent
+	participants []Participant
+	stats        GameStats
 }
 
 func NewGame(p1, p2, p3, p4 string, t1, t2 string, ai1, ai2, ai3, ai4 bool) Game {
 	game := Game{
-		Participants: []Participant{
-			Participant{
-				Player:     Player1,
-				Team:       Team1,
-				PlayerName: p1,
-				TeamName:   t1,
-				IsAI:       ai1,
+		participants: []Participant{
+			{
+				Player: Player1, Team: Team1,
+				PlayerName: p1, TeamName: t1, IsAI: ai1,
 			},
-			Participant{
-				Player:     Player2,
-				Team:       Team2,
-				PlayerName: p2,
-				TeamName:   t2,
-				IsAI:       ai2,
+			{
+				Player: Player2, Team: Team2,
+				PlayerName: p2, TeamName: t2, IsAI: ai2,
 			},
-			Participant{
-				Player:     Player3,
-				Team:       Team1,
-				PlayerName: p3,
-				TeamName:   t1,
-				IsAI:       ai3,
+			{
+				Player: Player3, Team: Team1,
+				PlayerName: p3, TeamName: t1, IsAI: ai3,
 			},
-			Participant{
-				Player:     Player4,
-				Team:       Team2,
-				PlayerName: p4,
-				TeamName:   t2,
-				IsAI:       ai4,
+			{
+				Player: Player4, Team: Team2,
+				PlayerName: p4, TeamName: t2, IsAI: ai4,
 			},
 		},
 	}
@@ -45,32 +34,31 @@ func NewGame(p1, p2, p3, p4 string, t1, t2 string, ai1, ai2, ai3, ai4 bool) Game
 	return game
 }
 
-func (g *Game) StartMatch() []MatchEvent {
-	g.addMatchEvent(MatchStartedEvent)
-
-	g.startNextRound()
-	g.applyAiActions()
-
-	return g.clearMatchEvents()
-}
-
-func (g *Game) Apply(action Action) (ActionResult, []MatchEvent) {
-	actRes := g.apply(action)
-
-	if actRes.Succeeded {
-		g.applyAiActions()
-	} else {
-		return actRes, nil
+func (g *Game) Start() ([]GameEvent, error) {
+	if g.currentRound() != nil {
+		return nil, newGameAlreadyStartedError()
 	}
 
-	return actRes, g.clearMatchEvents()
+	g.enqueueEvent(GameStartedEvent)
+	g.startNextRound()
+	applyAIActions(g)
+
+	return g.dequeueEvents(), nil
 }
 
-func (g *Game) MatchState() MatchState {
-	return g.match.state()
+func (g *Game) Apply(action Action) ([]GameEvent, error) {
+	err := g.apply(action)
+
+	if err != nil {
+		applyAIActions(g)
+	} else {
+		return nil, err
+	}
+
+	return g.dequeueEvents(), nil
 }
 
-func (g *Game) apply(action Action) ActionResult {
+func (g *Game) apply(action Action) error {
 	var err error
 	switch action.Name {
 	case AssignTrumpAction:
@@ -81,113 +69,141 @@ func (g *Game) apply(action Action) ActionResult {
 		err = fmt.Errorf("unexpected action: %s", action.Name)
 	}
 
-	if err == nil {
-		return ActionResult{Succeeded: true}
-	} else {
-		return ActionResult{Succeeded: false, ErrorMsg: err.Error()}
-	}
-}
-
-func (g *Game) applyAiAction() bool {
-	action := getAIAction(g)
-	if action.Name == "" {
-		return false
+	if err != nil {
+		return err
 	}
 
-	actRes := g.apply(action)
-	if !actRes.Succeeded {
-		msg := fmt.Sprintf(
-			"ai %v action %s failed: %s",
-			action.Player, action.Name, actRes.ErrorMsg,
-		)
-		panic(msg)
-	}
-
-	return true
-}
-
-func (g *Game) applyAiActions() {
-	for {
-		if !g.applyAiAction() {
-			return
-		}
-	}
+	return nil
 }
 
 func (g *Game) startNextRound() {
-	if err := g.match.startNextRound(); err != nil {
+	if g.isCompleted() {
+		panic(newGameCompletedError())
+	}
+
+	var round round
+	var err error
+
+	if curRound := g.currentRound(); curRound == nil {
+		round = newFirstRound()
+	} else {
+		round, err = newRound(*curRound)
+	}
+
+	if err != nil {
 		panic(err)
 	}
 
-	g.addMatchEvent(RoundStartedEvent)
+	g.rounds = append(g.rounds, round)
+	g.enqueueEvent(RoundStartedEvent)
 }
 
 func (g *Game) startNextTrick() {
-	if err := g.match.startNextTrick(); err != nil {
+	if g.isCompleted() {
+		panic(newGameCompletedError())
+	}
+
+	if err := g.mustCurrentRound().startNextTrick(); err != nil {
 		panic(err)
 	}
 
-	g.addMatchEvent(TrickStartedEvent)
-}
-
-func (g *Game) assignTrump(suit Suit, player Player) error {
-	if err := g.match.assignTrump(suit, player); err != nil {
-		switch err.(matchError).code {
-		case noCurrentRoundError:
-			panic(err)
-		default:
-			return err
-		}
-	}
-
-	g.addMatchEvent(TrumpAssignedEvent)
-	g.startNextTrick()
-	return nil
+	g.enqueueEvent(TrickStartedEvent)
 }
 
 func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
-	if err := g.match.playCard(rank, suit, player); err != nil {
-		switch err.(matchError).code {
-		case noCurrentRoundError, noCurrentTrickError:
-			panic(err)
-		default:
-			return err
-		}
+	if g.isCompleted() {
+		return newGameCompletedError()
 	}
 
-	if g.match.isMatchCompleted() {
-		g.addMatchEvent(CardPlayedAndMatchCompletedEvent)
-	} else if g.match.isCurrentRoundCompleted() {
-		g.addMatchEvent(CardPlayedAndRoundCompletedEvent)
+	curRound := g.mustCurrentRound()
+	if err := curRound.playCard(rank, suit, player); err != nil {
+		return err
+	}
+
+	g.recalcStats()
+
+	if g.isCompleted() {
+		g.enqueueEvent(CardPlayedAndGameCompletedEvent)
+	} else if curRound.isCompleted() {
+		g.enqueueEvent(CardPlayedAndRoundCompletedEvent)
 		g.startNextRound()
-	} else if g.match.isCurrentTrickCompleted() {
-		g.addMatchEvent(CardPlayedAndTrickCompletedEvent)
+	} else if curRound.mustCurrentTrick().isCompleted() {
+		g.enqueueEvent(CardPlayedAndTrickCompletedEvent)
 		g.startNextTrick()
 	} else {
-		g.addMatchEvent(CardPlayedEvent)
+		g.enqueueEvent(CardPlayedEvent)
 	}
+
+	applyAIActions(g)
 
 	return nil
 }
 
-func (g *Game) addMatchEvent(et EventType) {
-	g.matchEvents = append(g.matchEvents, newMatchEvent(g.match, et))
+func (g *Game) assignTrump(suit Suit, player Player) error {
+	if g.isCompleted() {
+		return newGameCompletedError()
+	}
+
+	if err := g.mustCurrentRound().assignTrump(suit, player); err != nil {
+		return err
+	}
+
+	g.enqueueEvent(TrumpAssignedEvent)
+	applyAIActions(g)
+
+	return nil
 }
 
-func (g *Game) clearMatchEvents() []MatchEvent {
-	events := g.matchEvents
+func (g *Game) recalcStats() {
+	g.stats = newGameStats(*g)
+}
 
-	g.matchEvents = nil
+func (g *Game) enqueueEvent(et EventType) {
+	g.eventsQueue = append(
+		g.eventsQueue,
+		GameEvent{EventType: et, GameState: g.State()},
+	)
+}
+
+func (g *Game) dequeueEvents() []GameEvent {
+	events := g.eventsQueue
+
+	g.eventsQueue = nil
 
 	return events
 }
 
-func (g *Game) isAI(p Player) bool {
-	for _, participant := range g.Participants {
+func (g Game) State() GameState {
+	return newGameState(g)
+}
+
+func (g Game) currentRound() *round {
+	if len(g.rounds) == 0 {
+		return nil
+	}
+
+	return &g.rounds[len(g.rounds)-1]
+}
+
+func (g Game) mustCurrentRound() *round {
+	curRound := g.currentRound()
+	if curRound == nil {
+		panic("no current round")
+	}
+
+	return curRound
+}
+
+func (g Game) isCompleted() bool {
+	return !g.stats.WinTeam.isZero()
+}
+
+func (g Game) getParticipant(p Player) Participant {
+	for _, participant := range g.participants {
 		if participant.Player == p {
-			return participant.IsAI
+			return participant
 		}
 	}
 
-	return false
+	return Participant{}
 }
