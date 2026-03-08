@@ -11,3 +11,7 @@ type Action struct {
 	Rank   Rank
 	Suit   Suit
 }
+
+func (a Action) isZero() bool {
+	return a.Name == ""
+}

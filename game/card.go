@@ -11,33 +11,33 @@ const (
 	jackOfDiamonds  = int(JackRank) + int(DiamondsSuit)
 )
 
-type Card struct {
-	Rank    Rank
-	Suit    Suit
-	IsTrump bool
+type card struct {
+	rank    Rank
+	suit    Suit
+	isTrump bool
 }
 
-func newCard(rank Rank, suit Suit) (Card, error) {
+func newCard(rank Rank, suit Suit) (card, error) {
 	if !rank.isValid() {
-		return Card{}, newInvalidRankError(rank)
+		return card{}, newInvalidRankError(rank)
 	}
 	if !suit.isValid() {
-		return Card{}, newInvalidSuitError(suit)
+		return card{}, newInvalidSuitError(suit)
 	}
 
-	card := Card{Rank: rank, Suit: suit}
+	card := card{rank: rank, suit: suit}
 	if card.isDefaultTrump() {
-		card.IsTrump = true
+		card.isTrump = true
 	}
 
 	return card, nil
 }
 
-func (c Card) isDefaultTrump() bool {
-	return c.Rank == SevenRank || c.Rank == JackRank
+func (c card) isDefaultTrump() bool {
+	return c.rank == SevenRank || c.rank == JackRank
 }
 
-func (c Card) level() int {
+func (c card) level() int {
 	var level int
 
 	if c.isDefaultTrump() {
@@ -59,8 +59,8 @@ func (c Card) level() int {
 		case jackOfDiamonds:
 			level = 14
 		}
-	} else if c.IsTrump {
-		switch c.Rank {
+	} else if c.isTrump {
+		switch c.rank {
 		case SixRank:
 			level = 22
 		case AceRank:
@@ -77,7 +77,7 @@ func (c Card) level() int {
 			level = 8
 		}
 	} else {
-		switch c.Rank {
+		switch c.rank {
 		case AceRank:
 			level = 7
 		case KingRank:
@@ -98,6 +98,10 @@ func (c Card) level() int {
 	return level
 }
 
-func (c Card) id() int {
-	return int(c.Rank) + int(c.Suit)
+func (c card) id() int {
+	return int(c.rank) + int(c.suit)
+}
+
+func (c card) state(isPlayable bool) CardState {
+	return newCardState(c, isPlayable)
 }

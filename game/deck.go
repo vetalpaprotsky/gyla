@@ -6,12 +6,12 @@ const cardsCount = len(allRanks) * len(allSuits)
 const cardsPerPlayerCount = cardsCount / len(allPlayers)
 
 type deck struct {
-	cards []Card
+	cards []card
 }
 
 func newDeck() deck {
 	shuffledIndexes := createSliceWithShuffledIndexes()
-	cards := make([]Card, cardsCount)
+	cards := make([]card, cardsCount)
 	k := 0
 
 	for _, r := range allRanks {
@@ -28,13 +28,13 @@ func newDeck() deck {
 
 // TODO: If one hand has four 7, or four 6, and we need to re-deal the cards.
 // It's not allowed by the game rules.
-func (d deck) deal() []Hand {
-	hands := make([]Hand, len(allPlayers))
+func (d deck) deal() []hand {
+	hands := make([]hand, len(allPlayers))
 
 	for i := range allPlayers {
 		start := i * cardsPerPlayerCount
 		end := start + cardsPerPlayerCount
-		hands[i] = Hand{Player: allPlayers[i], Cards: d.cards[start:end]}
+		hands[i] = hand{player: allPlayers[i], cards: d.cards[start:end]}
 	}
 
 	return hands

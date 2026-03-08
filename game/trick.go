@@ -8,6 +8,11 @@ type trick struct {
 	playedCards []PlayedCard
 }
 
+type PlayedCard struct {
+	Player Player
+	Card   card
+}
+
 func newFirstTrick(starter Player) trick {
 	return trick{
 		number:      1,
@@ -33,7 +38,7 @@ func newTrick(curTrick trick) (trick, error) {
 	}, nil
 }
 
-func (t *trick) addCard(player Player, card Card) error {
+func (t *trick) addCard(player Player, card card) error {
 	if t.isCompleted() {
 		return newTooManyCardsPerTrickError()
 	} else if expPlr := t.expectedNextPlayer(); expPlr != player {
@@ -60,10 +65,10 @@ func (t trick) winner() Player {
 			}
 		}
 	} else {
-		leadingSuit := t.firstCard().Suit
+		leadingSuit := t.firstCard().suit
 
 		for _, pc := range t.playedCards {
-			if pc.Card.Suit == leadingSuit && pc.Card.level() > winCard.level() {
+			if pc.Card.suit == leadingSuit && pc.Card.level() > winCard.level() {
 				winPlayer = pc.Player
 				winCard = pc.Card
 			}
@@ -73,9 +78,9 @@ func (t trick) winner() Player {
 	return winPlayer
 }
 
-func (t trick) firstCard() Card {
+func (t trick) firstCard() card {
 	if t.isEmpty() {
-		return Card{}
+		return card{}
 	}
 
 	return t.playedCards[0].Card
@@ -83,7 +88,7 @@ func (t trick) firstCard() Card {
 
 func (t trick) hasAnyTrumps() bool {
 	for _, pc := range t.playedCards {
-		if pc.Card.IsTrump {
+		if pc.Card.isTrump {
 			return true
 		}
 	}
@@ -112,23 +117,10 @@ func (t trick) expectedNextPlayer() Player {
 	return lastPlayer.leftOpponent()
 }
 
+func (t trick) isZero() bool {
+	return t.number == 0
+}
+
 func (t trick) state() TrickState {
-	return TrickState{
-		Number:      t.number,
-		Next:        t.expectedNextPlayer(),
-		PlayedCards: append([]PlayedCard{}, t.playedCards...),
-		Winner:      t.winner(),
-	}
-}
-
-type TrickState struct {
-	Number      int
-	Next        Player
-	PlayedCards []PlayedCard
-	Winner      Player
-}
-
-type PlayedCard struct {
-	Player Player
-	Card   Card
+	return newTrickState(t)
 }

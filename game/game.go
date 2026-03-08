@@ -35,7 +35,7 @@ func NewGame(p1, p2, p3, p4 string, t1, t2 string, ai1, ai2, ai3, ai4 bool) Game
 }
 
 func (g *Game) Start() ([]GameEvent, error) {
-	if g.currentRound() != nil {
+	if !g.currentRound().isZero() {
 		return nil, newGameAlreadyStartedError()
 	}
 
@@ -84,10 +84,10 @@ func (g *Game) startNextRound() {
 	var round round
 	var err error
 
-	if curRound := g.currentRound(); curRound == nil {
+	if curRound := g.currentRound(); curRound.isZero() {
 		round = newFirstRound()
 	} else {
-		round, err = newRound(*curRound)
+		round, err = newRound(curRound)
 	}
 
 	if err != nil {
@@ -103,7 +103,7 @@ func (g *Game) startNextTrick() {
 		panic(newGameCompletedError())
 	}
 
-	if err := g.mustCurrentRound().startNextTrick(); err != nil {
+	if err := g.currentRoundPtr().startNextTrick(); err != nil {
 		panic(err)
 	}
 
@@ -115,7 +115,7 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 		return newGameCompletedError()
 	}
 
-	curRound := g.mustCurrentRound()
+	curRound := g.currentRoundPtr()
 	if err := curRound.playCard(rank, suit, player); err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 	} else if curRound.isCompleted() {
 		g.enqueueEvent(CardPlayedAndRoundCompletedEvent)
 		g.startNextRound()
-	} else if curRound.mustCurrentTrick().isCompleted() {
+	} else if curRound.currentTrick().isCompleted() {
 		g.enqueueEvent(CardPlayedAndTrickCompletedEvent)
 		g.startNextTrick()
 	} else {
@@ -144,7 +144,7 @@ func (g *Game) assignTrump(suit Suit, player Player) error {
 		return newGameCompletedError()
 	}
 
-	if err := g.mustCurrentRound().assignTrump(suit, player); err != nil {
+	if err := g.currentRoundPtr().assignTrump(suit, player); err != nil {
 		return err
 	}
 
@@ -177,21 +177,20 @@ func (g Game) State() GameState {
 	return newGameState(g)
 }
 
-func (g Game) currentRound() *round {
+func (g Game) currentRound() round {
 	if len(g.rounds) == 0 {
-		return nil
+		return round{}
 	}
 
-	return &g.rounds[len(g.rounds)-1]
+	return g.rounds[len(g.rounds)-1]
 }
 
-func (g Game) mustCurrentRound() *round {
-	curRound := g.currentRound()
-	if curRound == nil {
+func (g Game) currentRoundPtr() *round {
+	if len(g.rounds) == 0 {
 		panic("no current round")
 	}
 
-	return curRound
+	return &g.rounds[len(g.rounds)-1]
 }
 
 func (g Game) isCompleted() bool {

@@ -10,15 +10,15 @@ func TestNewCard(t *testing.T) {
 	tests := []struct {
 		rank    Rank
 		suit    Suit
-		want    Card
+		want    card
 		wantErr error
 	}{
-		{TenRank, HeartsSuit, Card{Rank: TenRank, Suit: HeartsSuit, IsTrump: false}, nil},
-		{KingRank, SpadesSuit, Card{Rank: KingRank, Suit: SpadesSuit, IsTrump: false}, nil},
-		{SevenRank, ClubsSuit, Card{Rank: SevenRank, Suit: ClubsSuit, IsTrump: true}, nil},
-		{JackRank, DiamondsSuit, Card{Rank: JackRank, Suit: DiamondsSuit, IsTrump: true}, nil},
-		{Rank(99), SpadesSuit, Card{}, newInvalidRankError(Rank(99))},
-		{QueenRank, Suit(99), Card{}, newInvalidSuitError(Suit(99))},
+		{TenRank, HeartsSuit, card{rank: TenRank, suit: HeartsSuit, isTrump: false}, nil},
+		{KingRank, SpadesSuit, card{rank: KingRank, suit: SpadesSuit, isTrump: false}, nil},
+		{SevenRank, ClubsSuit, card{rank: SevenRank, suit: ClubsSuit, isTrump: true}, nil},
+		{JackRank, DiamondsSuit, card{rank: JackRank, suit: DiamondsSuit, isTrump: true}, nil},
+		{Rank(99), SpadesSuit, card{}, newInvalidRankError(Rank(99))},
+		{QueenRank, Suit(99), card{}, newInvalidSuitError(Suit(99))},
 	}
 
 	for _, tt := range tests {
@@ -37,19 +37,19 @@ func TestNewCard(t *testing.T) {
 
 func TestLevel(t *testing.T) {
 	tests := []struct {
-		card Card
+		card card
 		want int
 	}{
-		{Card{Rank: QueenRank, Suit: HeartsSuit}, 5},
-		{Card{Rank: QueenRank, Suit: HeartsSuit, IsTrump: true}, 11},
-		{Card{Rank: NineRank, Suit: ClubsSuit}, 3},
-		{Card{Rank: NineRank, Suit: ClubsSuit, IsTrump: true}, 9},
-		{Card{Rank: SixRank, Suit: SpadesSuit}, 1},
-		{Card{Rank: SixRank, Suit: SpadesSuit, IsTrump: true}, 22},
-		{Card{Rank: SevenRank, Suit: HeartsSuit}, 19},
-		{Card{Rank: SevenRank, Suit: HeartsSuit, IsTrump: true}, 19},
-		{Card{Rank: JackRank, Suit: DiamondsSuit}, 14},
-		{Card{Rank: JackRank, Suit: DiamondsSuit, IsTrump: true}, 14},
+		{card{rank: QueenRank, suit: HeartsSuit}, 5},
+		{card{rank: QueenRank, suit: HeartsSuit, isTrump: true}, 11},
+		{card{rank: NineRank, suit: ClubsSuit}, 3},
+		{card{rank: NineRank, suit: ClubsSuit, isTrump: true}, 9},
+		{card{rank: SixRank, suit: SpadesSuit}, 1},
+		{card{rank: SixRank, suit: SpadesSuit, isTrump: true}, 22},
+		{card{rank: SevenRank, suit: HeartsSuit}, 19},
+		{card{rank: SevenRank, suit: HeartsSuit, isTrump: true}, 19},
+		{card{rank: JackRank, suit: DiamondsSuit}, 14},
+		{card{rank: JackRank, suit: DiamondsSuit, isTrump: true}, 14},
 	}
 
 	for _, tt := range tests {

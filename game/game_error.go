@@ -82,7 +82,7 @@ func newHandNotFoundError(player Player) gameError {
 	}
 }
 
-func newInvalidCardForPlayError(player Player, card Card) gameError {
+func newInvalidCardForPlayError(player Player, card card) gameError {
 	return gameError{
 		invalidCardForPlayError,
 		fmt.Sprintf("player %v cannot play card %v", player, card),

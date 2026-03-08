@@ -17,7 +17,7 @@ type round struct {
 	starter        Player
 	trumpedWithSix bool
 	trump          Suit
-	hands          []Hand
+	hands          []hand
 	tricks         []trick
 }
 
@@ -68,14 +68,14 @@ func (r *round) startNextTrick() error {
 	var trick trick
 	var err error
 
-	if curTrick := r.currentTrick(); curTrick == nil {
+	if curTrick := r.currentTrick(); curTrick.isZero() {
 		if r.isTrumpAssigned() {
 			trick = newFirstTrick(r.starter)
 		} else {
 			err = newNoTrumpAssignedError()
 		}
 	} else {
-		trick, err = newTrick(*curTrick)
+		trick, err = newTrick(curTrick)
 	}
 
 	if err != nil {
@@ -102,15 +102,15 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 	r.trump = trump
 
 	for _, h := range r.hands {
-		for i, c := range h.Cards {
-			if c.Suit == trump {
-				h.Cards[i].IsTrump = true
+		for i, c := range h.cards {
+			if c.suit == trump {
+				h.cards[i].isTrump = true
 			}
 		}
 	}
 
-	for _, c := range r.getHand(r.trumper()).Cards {
-		if c.Rank == SixRank && c.IsTrump {
+	for _, c := range r.getHand(r.trumper()).cards {
+		if c.rank == SixRank && c.isTrump {
 			r.trumpedWithSix = true
 		}
 	}
@@ -128,7 +128,7 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 		return newHandNotFoundError(player)
 	}
 
-	trick := r.mustCurrentTrick()
+	trick := r.currentTrickPtr()
 	card := hand.getCard(rank, suit)
 	if !hand.canPlayCard(card, *trick) {
 		return newInvalidCardForPlayError(player, card)
@@ -145,26 +145,25 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 	return nil
 }
 
-func (r round) currentTrick() *trick {
+func (r round) currentTrick() trick {
 	if len(r.tricks) == 0 {
-		return nil
+		return trick{}
+	}
+
+	return r.tricks[len(r.tricks)-1]
+}
+
+func (r round) currentTrickPtr() *trick {
+	if len(r.tricks) == 0 {
+		panic("no current trick")
 	}
 
 	return &r.tricks[len(r.tricks)-1]
 }
 
-func (r round) mustCurrentTrick() *trick {
-	curTrick := r.currentTrick()
-	if curTrick == nil {
-		panic("no current trick")
-	}
-
-	return curTrick
-}
-
-func (r round) getHand(player Player) *Hand {
+func (r round) getHand(player Player) *hand {
 	for i := 0; i < len(r.hands); i++ {
-		if r.hands[i].Player == player {
+		if r.hands[i].player == player {
 			return &r.hands[i]
 		}
 	}
@@ -176,11 +175,11 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 	for i := 0; i < len(r.hands); i++ {
 		hand := r.hands[i]
 
-		for j := 0; j < len(hand.Cards); j++ {
-			card := hand.Cards[j]
+		for j := 0; j < len(hand.cards); j++ {
+			card := hand.cards[j]
 
-			if card.Rank == NineRank && card.Suit == DiamondsSuit {
-				return hand.Player, true
+			if card.rank == NineRank && card.suit == DiamondsSuit {
+				return hand.player, true
 			}
 		}
 	}
@@ -275,6 +274,10 @@ func (r round) starterLeftOpponent() Player {
 	}
 
 	return opponent
+}
+
+func (r round) isZero() bool {
+	return r.number == 0
 }
 
 func (r round) state() RoundState {

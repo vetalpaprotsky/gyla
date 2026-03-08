@@ -7,15 +7,8 @@ type GameState struct {
 }
 
 func newGameState(g Game) GameState {
-	curRound := g.currentRound()
-	var curRoundState RoundState
-
-	if curRound != nil {
-		curRoundState = curRound.state()
-	}
-
 	return GameState{
-		Round:        curRoundState,
+		Round:        g.currentRound().state(),
 		Stats:        g.stats.deepCopy(),
 		Participants: append([]Participant{}, g.participants...),
 	}

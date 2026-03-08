@@ -1,23 +1,22 @@
 package game
 
-// TODO: Add something like playable cards for the next player.
 type RoundState struct {
 	Number         int
 	Trumper        Player
 	TrumpedWithSix bool
 	Trump          Suit
-	Hands          []Hand
+	Hands          []HandState
 	Tricks         []TrickState
 	WinTeam        Team
 }
 
 func newRoundState(r round) RoundState {
-	hands := make([]Hand, 0, len(r.hands)-1)
+	hands := make([]HandState, 0, len(r.hands))
 	for _, h := range r.hands {
-		hands = append(hands, h.deepCopy())
+		hands = append(hands, h.state(r.currentTrick()))
 	}
 
-	tricks := make([]TrickState, 0, len(r.tricks)-1)
+	tricks := make([]TrickState, 0, len(r.tricks))
 	for _, t := range r.tricks {
 		tricks = append(tricks, t.state())
 	}
@@ -33,14 +32,14 @@ func newRoundState(r round) RoundState {
 	}
 }
 
-func (rs RoundState) getHand(p Player) Hand {
+func (rs RoundState) getHand(p Player) HandState {
 	for _, h := range rs.Hands {
 		if h.Player == p {
 			return h
 		}
 	}
 
-	return Hand{}
+	return HandState{}
 }
 
 func (rs RoundState) ViewFor(p Player) RoundView {
@@ -63,7 +62,7 @@ type RoundView struct {
 	Trumper           Player
 	TrumpedWithSix    bool
 	Trump             Suit
-	Hand              Hand
+	Hand              HandState
 	LeftOpponentHand  int
 	TeammateHand      int
 	RightOpponentHand int
