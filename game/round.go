@@ -4,6 +4,14 @@ import "fmt"
 
 const maxPossibleNumberOfRounds = 19
 
+// Lifecycle:
+// 1. newRound/newFirstRound
+// 2. assignTrump
+// 3. startNextTrick
+// 4. playCard - 4 times
+// 5. startNextTrick
+// 6. playCard - 4 times
+// ...
 type round struct {
 	number         int
 	starter        Player
@@ -53,6 +61,10 @@ func newFirstRound() round {
 }
 
 func (r *round) startNextTrick() error {
+	if r.isCompleted() {
+		return newTooManyTricksPerRoundError()
+	}
+
 	var trick trick
 	var err error
 
@@ -107,9 +119,8 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 }
 
 func (r *round) playCard(rank Rank, suit Suit, player Player) error {
-	trick := r.currentTrick()
-	if trick == nil {
-		return newNoCurrentTrickError()
+	if !r.isTrumpAssigned() {
+		return newNoTrumpAssignedError()
 	}
 
 	hand := r.getHand(player)
@@ -117,6 +128,7 @@ func (r *round) playCard(rank Rank, suit Suit, player Player) error {
 		return newHandNotFoundError(player)
 	}
 
+	trick := r.mustCurrentTrick()
 	card := hand.getCard(rank, suit)
 	if !hand.canPlayCard(card, *trick) {
 		return newInvalidCardForPlayError(player, card)
@@ -174,13 +186,6 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 	}
 
 	return Player(0), false
-}
-
-func (r round) playableCardsFor(player Player) []Card {
-	trick := *r.currentTrick()
-	hand := r.getHand(player)
-
-	return hand.playableCardsFor(trick)
 }
 
 func (r round) isCompleted() bool {

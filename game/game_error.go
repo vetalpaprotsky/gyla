@@ -3,9 +3,7 @@ package game
 import "fmt"
 
 const (
-	noCurrentTrickError = iota + 1
-	noCurrentRoundError
-	noTrickWinnerError
+	noTrickWinnerError = iota + 1
 	noRoundWinTeamError
 	tooManyCardsPerTrickError
 	tooManyTricksPerRoundError
@@ -32,14 +30,6 @@ type gameError struct {
 
 func (ge gameError) Error() string {
 	return ge.msg
-}
-
-func newNoCurrentTrickError() gameError {
-	return gameError{noCurrentTrickError, "current trick not present"}
-}
-
-func newNoCurrentRoundError() gameError {
-	return gameError{noCurrentRoundError, "current round not present"}
 }
 
 func newNoTrickWinnerError() gameError {

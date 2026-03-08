@@ -31,6 +31,18 @@ func applyAIAction(g *Game) bool {
 }
 
 func getAIAction(g *Game) Action {
+	if action, ok := tryToAssignTrump(g); ok {
+		return action
+	}
+
+	if action, ok := tryToPlayCard(g); ok {
+		return action
+	}
+
+	return Action{}
+}
+
+func tryToAssignTrump(g *Game) (Action, bool) {
 	curRound := g.mustCurrentRound()
 
 	if !curRound.isTrumpAssigned() && g.getParticipant(curRound.trumper()).IsAI {
@@ -38,30 +50,37 @@ func getAIAction(g *Game) Action {
 			Name:   AssignTrumpAction,
 			Player: curRound.trumper(),
 			Suit:   randomSuit(),
-		}
+		}, true
 	}
 
-	curTrick := curRound.currentTrick()
-	if curTrick != nil {
-		player := curTrick.expectedNextPlayer()
-		if g.getParticipant(player).IsAI {
-			card := getRandomCard(*curRound, player)
-			return Action{
-				Name:   PlayCardAction,
-				Player: player,
-				Rank:   card.Rank,
-				Suit:   card.Suit,
-			}
-		}
-	}
-
-	return Action{}
+	return Action{}, false
 }
 
-func getRandomCard(r round, p Player) Card {
-	cards := r.playableCardsFor(p)
+func tryToPlayCard(g *Game) (Action, bool) {
+	curRound := g.mustCurrentRound()
+	curTrick := curRound.currentTrick()
+	if curTrick == nil {
+		return Action{}, false
+	}
 
-	return cards[rand.IntN(len(cards)-1)]
+	player := curTrick.expectedNextPlayer()
+	if player.isZero() || !g.getParticipant(player).IsAI {
+		return Action{}, false
+	}
+
+	hand := curRound.getHand(player)
+	playableCards := hand.playableCardsFor(*curTrick)
+	if len(playableCards) == 0 {
+		panic("AI: no playable cards for expected next player")
+	}
+
+	card := playableCards[rand.IntN(len(playableCards)-1)]
+	return Action{
+		Name:   PlayCardAction,
+		Player: player,
+		Rank:   card.Rank,
+		Suit:   card.Suit,
+	}, true
 }
 
 func randomSuit() Suit {

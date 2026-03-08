@@ -1,5 +1,6 @@
 package game
 
+// TODO: Add something like playable cards for the next player.
 type RoundState struct {
 	Number         int
 	Trumper        Player

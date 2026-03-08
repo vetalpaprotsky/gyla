@@ -42,6 +42,11 @@ func (h Hand) getCard(rank Rank, suit Suit) Card {
 }
 
 func (h Hand) playableCardsFor(trick trick) []Card {
+	// Not h.Player turn. No cards playable.
+	if h.Player != trick.expectedNextPlayer() {
+		return nil
+	}
+
 	// First card in a trick, any card works.
 	if trick.isEmpty() {
 		return h.Cards
