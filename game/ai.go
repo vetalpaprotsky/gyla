@@ -45,10 +45,10 @@ func getAIAction(g *Game) Action {
 func tryToAssignTrump(g *Game) Action {
 	curRound := g.currentRound()
 
-	if !curRound.isTrumpAssigned() && g.getParticipant(curRound.trumper()).IsAI {
+	if !curRound.isTrumpAssigned() && g.getParticipant(curRound.starter).IsAI {
 		return Action{
 			Name:   AssignTrumpAction,
-			Player: curRound.trumper(),
+			Player: curRound.starter,
 			Suit:   randomSuit(),
 		}
 	}

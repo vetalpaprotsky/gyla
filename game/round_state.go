@@ -23,7 +23,7 @@ func newRoundState(r round) RoundState {
 
 	return RoundState{
 		Number:         r.number,
-		Trumper:        r.trumper(),
+		Trumper:        r.starter,
 		TrumpedWithSix: r.trumpedWithSix,
 		Trump:          r.trump,
 		Hands:          hands,

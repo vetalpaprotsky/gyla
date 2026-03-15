@@ -35,7 +35,7 @@ func newRound(curRound round) (round, error) {
 
 	round := round{
 		number: curRound.number + 1,
-		hands:  newDeck().deal(),
+		hands:  dealHands(),
 		tricks: make([]trick, 0, tricksPerRoundCount),
 	}
 
@@ -49,7 +49,7 @@ func newRound(curRound round) (round, error) {
 }
 
 func newFirstRound() round {
-	round := round{number: 1, hands: newDeck().deal()}
+	round := round{number: 1, hands: dealHands()}
 
 	if starter, ok := round.findPlayerWithNineOfDiamonds(); ok {
 		round.starter = starter
@@ -95,8 +95,8 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 		return newInvalidTrumpError(trump)
 	}
 
-	if player != r.trumper() {
-		return newUnexpectedTrumperError(player, r.trumper())
+	if player != r.starter {
+		return newUnexpectedTrumperError(player, r.starter)
 	}
 
 	r.trump = trump
@@ -109,7 +109,7 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 		}
 	}
 
-	for _, c := range r.getHand(r.trumper()).cards {
+	for _, c := range r.getHand(r.starter).cards {
 		if c.rank == SixRank && c.isTrump {
 			r.trumpedWithSix = true
 		}
@@ -240,10 +240,6 @@ func (r round) winTeam() Team {
 
 func (r round) isTrumpAssigned() bool {
 	return r.trump.isZero()
-}
-
-func (r round) trumper() Player {
-	return r.starter
 }
 
 func (r round) starterTeam() Team {

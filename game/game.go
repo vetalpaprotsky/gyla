@@ -120,7 +120,9 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 		return err
 	}
 
-	g.recalcStats()
+	if curRound.isCompleted() {
+		g.recalcStats()
+	}
 
 	if g.isCompleted() {
 		g.enqueueEvent(CardPlayedAndGameCompletedEvent)

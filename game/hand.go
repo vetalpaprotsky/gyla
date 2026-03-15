@@ -24,13 +24,6 @@ func (h *hand) playCard(c card) bool {
 	return true
 }
 
-func (h hand) deepCopy() hand {
-	return hand{
-		player: h.player,
-		cards:  append([]card{}, h.cards...),
-	}
-}
-
 func (h hand) getCard(rank Rank, suit Suit) card {
 	for _, c := range h.cards {
 		if c.rank == rank && c.suit == suit {

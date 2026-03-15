@@ -1,51 +1,32 @@
 package game
 
-import "fmt"
-
-// TODO: Store info about every round:
-// points per team, trumper, tricks per player, tricks per team.
 type GameStats struct {
-	Team1Points int
-	Team2Points int
-	WinTeam     Team
+	Rounds  []RoundStats
+	Points  map[Team]int
+	WinTeam Team
 }
 
-// TODO: When loser team has no tricks, or has one trick, the number of added
-// points must be different.
 func newGameStats(g Game) GameStats {
-	stats := GameStats{}
+	stats := GameStats{
+		Rounds: make([]RoundStats, 0, len(g.rounds)),
+		Points: map[Team]int{Team1: 0, Team2: 0},
+	}
 
 	for _, round := range g.rounds {
-		winTeam := round.winTeam()
-		if winTeam.isZero() {
+		rs := newRoundStats(round)
+		if rs.WinTeam.isZero() {
 			continue
 		}
 
-		pointsToAdd := 6
-		if winTeam != round.starterTeam() {
-			pointsToAdd = 12
-		}
-
-		switch winTeam {
-		case Team1:
-			stats.Team2Points += pointsToAdd
-		case Team2:
-			stats.Team2Points += pointsToAdd
-		default:
-			panic(fmt.Sprintf("unknown team: %v", winTeam))
-		}
+		stats.Points[rs.WinTeam] += rs.Points[rs.WinTeam]
+		stats.Rounds = append(stats.Rounds, rs)
 	}
 
-	if stats.Team1Points >= 60 {
+	if stats.Points[Team1] >= 60 {
 		stats.WinTeam = Team1
-	} else if stats.Team2Points >= 60 {
+	} else if stats.Points[Team2] >= 60 {
 		stats.WinTeam = Team2
 	}
 
 	return stats
-}
-
-func (gs GameStats) deepCopy() GameStats {
-	// TODO: When we have an array of stats for each round.
-	return gs
 }

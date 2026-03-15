@@ -9,8 +9,8 @@ type GameState struct {
 func newGameState(g Game) GameState {
 	return GameState{
 		Round:        g.currentRound().state(),
-		Stats:        g.stats.deepCopy(),
-		Participants: append([]Participant{}, g.participants...),
+		Stats:        g.stats,
+		Participants: g.participants,
 	}
 }
 
