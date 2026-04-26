@@ -8,11 +8,6 @@ type trick struct {
 	playedCards []PlayedCard
 }
 
-type PlayedCard struct {
-	Player Player
-	Card   card
-}
-
 func newFirstTrick(starter Player) trick {
 	return trick{
 		number:      1,
@@ -38,14 +33,14 @@ func newTrick(curTrick trick) (trick, error) {
 	}, nil
 }
 
-func (t *trick) addCard(player Player, card card) error {
+func (t *trick) addCard(player Player, card Card) error {
 	if t.isCompleted() {
 		return newTooManyCardsPerTrickError()
 	} else if expPlr := t.expectedNextPlayer(); expPlr != player {
 		return newUnexpectedPlayerError(player, expPlr)
 	}
 
-	t.playedCards = append(t.playedCards, PlayedCard{Player: player, Card: card})
+	t.playedCards = append(t.playedCards, card.asPlayedCard(player))
 	return nil
 }
 
@@ -65,10 +60,10 @@ func (t trick) winner() Player {
 			}
 		}
 	} else {
-		leadingSuit := t.firstCard().suit
+		leadingSuit := t.firstCard().Suit
 
 		for _, pc := range t.playedCards {
-			if pc.Card.suit == leadingSuit && pc.Card.level() > winCard.level() {
+			if pc.Card.Suit == leadingSuit && pc.Card.level() > winCard.level() {
 				winPlayer = pc.Player
 				winCard = pc.Card
 			}
@@ -78,9 +73,9 @@ func (t trick) winner() Player {
 	return winPlayer
 }
 
-func (t trick) firstCard() card {
+func (t trick) firstCard() Card {
 	if t.isEmpty() {
-		return card{}
+		return Card{}
 	}
 
 	return t.playedCards[0].Card
@@ -88,7 +83,7 @@ func (t trick) firstCard() card {
 
 func (t trick) hasAnyTrumps() bool {
 	for _, pc := range t.playedCards {
-		if pc.Card.isTrump {
+		if pc.Card.IsTrump {
 			return true
 		}
 	}

@@ -103,14 +103,14 @@ func (r *round) assignTrump(trump Suit, player Player) error {
 
 	for _, h := range r.hands {
 		for i, c := range h.cards {
-			if c.suit == trump {
-				h.cards[i].isTrump = true
+			if c.Suit == trump {
+				h.cards[i].IsTrump = true
 			}
 		}
 	}
 
 	for _, c := range r.getHand(r.starter).cards {
-		if c.rank == SixRank && c.isTrump {
+		if c.Rank == SixRank && c.IsTrump {
 			r.trumpedWithSix = true
 		}
 	}
@@ -178,7 +178,7 @@ func (r round) findPlayerWithNineOfDiamonds() (Player, bool) {
 		for j := 0; j < len(hand.cards); j++ {
 			card := hand.cards[j]
 
-			if card.rank == NineRank && card.suit == DiamondsSuit {
+			if card.Rank == NineRank && card.Suit == DiamondsSuit {
 				return hand.player, true
 			}
 		}

@@ -125,7 +125,7 @@ func TestGameWorkflow(t *testing.T) {
 		hand := state.Round.getHand(starter)
 		if len(hand.Cards) > 0 {
 			c := hand.Cards[0]
-			_, err := g.Apply(Action{Name: PlayCardAction, Player: starter, Rank: c.Rank, Suit: c.Suit})
+			_, err := g.Apply(Action{Name: PlayCardAction, Player: starter, Rank: c.Card.Rank, Suit: c.Card.Suit})
 			if err == nil {
 				t.Fatal("expected error when playing card before trump is assigned")
 			}
@@ -148,7 +148,7 @@ func TestGameWorkflow(t *testing.T) {
 		wrongHand := curState.Round.getHand(wrongPlayer)
 		if len(wrongHand.Cards) > 0 {
 			c := wrongHand.Cards[0]
-			_, err := g.Apply(Action{Name: PlayCardAction, Player: wrongPlayer, Rank: c.Rank, Suit: c.Suit})
+			_, err := g.Apply(Action{Name: PlayCardAction, Player: wrongPlayer, Rank: c.Card.Rank, Suit: c.Card.Suit})
 			if err == nil {
 				t.Fatal("expected error when wrong player plays a card")
 			}
@@ -156,7 +156,7 @@ func TestGameWorkflow(t *testing.T) {
 
 		// Correct player plays a playable card
 		correctHand := curState.Round.getHand(nextPlayer)
-		var playableCard CardState
+		var playableCard HandCard
 		for _, c := range correctHand.Cards {
 			if c.IsPlayable {
 				playableCard = c
@@ -164,7 +164,7 @@ func TestGameWorkflow(t *testing.T) {
 			}
 		}
 
-		events, err := g.Apply(Action{Name: PlayCardAction, Player: nextPlayer, Rank: playableCard.Rank, Suit: playableCard.Suit})
+		events, err := g.Apply(Action{Name: PlayCardAction, Player: nextPlayer, Rank: playableCard.Card.Rank, Suit: playableCard.Card.Suit})
 		if err != nil {
 			t.Fatalf("unexpected error playing card: %v", err)
 		}
@@ -213,7 +213,7 @@ func TestGameWorkflow(t *testing.T) {
 			}
 
 			hand := curState.Round.getHand(nextPlayer)
-			var playable CardState
+			var playable HandCard
 			found := false
 			for _, c := range hand.Cards {
 				if c.IsPlayable {
@@ -230,8 +230,8 @@ func TestGameWorkflow(t *testing.T) {
 			events, err = g.Apply(Action{
 				Name:   PlayCardAction,
 				Player: nextPlayer,
-				Rank:   playable.Rank,
-				Suit:   playable.Suit,
+				Rank:   playable.Card.Rank,
+				Suit:   playable.Card.Suit,
 			})
 			if err != nil {
 				t.Fatalf("unexpected error playing card %d: %v", cardsPlayed, err)
@@ -314,7 +314,7 @@ func TestGameWorkflow(t *testing.T) {
 				}
 
 				hand := curState.Round.getHand(nextPlayer)
-				var playable CardState
+				var playable HandCard
 				found := false
 				for _, c := range hand.Cards {
 					if c.IsPlayable {
@@ -331,8 +331,8 @@ func TestGameWorkflow(t *testing.T) {
 				events, err = g.Apply(Action{
 					Name:   PlayCardAction,
 					Player: nextPlayer,
-					Rank:   playable.Rank,
-					Suit:   playable.Suit,
+					Rank:   playable.Card.Rank,
+					Suit:   playable.Card.Suit,
 				})
 				if err != nil {
 					t.Fatalf("error playing card in round %d: %v", roundsPlayed+1, err)
@@ -498,7 +498,7 @@ func TestGameWorkflow(t *testing.T) {
 
 		// First player plays any card (first playable)
 		hand1 := curState.Round.getHand(firstPlayer)
-		var firstCard CardState
+		var firstCard HandCard
 		for _, c := range hand1.Cards {
 			if c.IsPlayable {
 				firstCard = c
@@ -509,8 +509,8 @@ func TestGameWorkflow(t *testing.T) {
 		g.Apply(Action{
 			Name:   PlayCardAction,
 			Player: firstPlayer,
-			Rank:   firstCard.Rank,
-			Suit:   firstCard.Suit,
+			Rank:   firstCard.Card.Rank,
+			Suit:   firstCard.Card.Suit,
 		})
 
 		// Now check second player can only play playable cards
@@ -525,11 +525,11 @@ func TestGameWorkflow(t *testing.T) {
 				_, err := g.Apply(Action{
 					Name:   PlayCardAction,
 					Player: secondPlayer,
-					Rank:   c.Rank,
-					Suit:   c.Suit,
+					Rank:   c.Card.Rank,
+					Suit:   c.Card.Suit,
 				})
 				if err == nil {
-					t.Fatalf("expected error when playing non-playable card (rank=%v suit=%v)", c.Rank, c.Suit)
+					t.Fatalf("expected error when playing non-playable card (rank=%v suit=%v)", c.Card.Rank, c.Card.Suit)
 				}
 				break
 			}
@@ -560,7 +560,7 @@ func TestGameWorkflow(t *testing.T) {
 			}
 
 			hand := curState.Round.getHand(nextPlayer)
-			var playable CardState
+			var playable HandCard
 			for _, c := range hand.Cards {
 				if c.IsPlayable {
 					playable = c
@@ -571,8 +571,8 @@ func TestGameWorkflow(t *testing.T) {
 			events, err := g.Apply(Action{
 				Name:   PlayCardAction,
 				Player: nextPlayer,
-				Rank:   playable.Rank,
-				Suit:   playable.Suit,
+				Rank:   playable.Card.Rank,
+				Suit:   playable.Card.Suit,
 			})
 			if err != nil {
 				t.Fatalf("error playing card: %v", err)
@@ -698,7 +698,7 @@ func TestGameWorkflow(t *testing.T) {
 				}
 
 				hand := curState.Round.getHand(nextPlayer)
-				var playable CardState
+				var playable HandCard
 				for _, c := range hand.Cards {
 					if c.IsPlayable {
 						playable = c
@@ -709,8 +709,8 @@ func TestGameWorkflow(t *testing.T) {
 				events, err = g.Apply(Action{
 					Name:   PlayCardAction,
 					Player: nextPlayer,
-					Rank:   playable.Rank,
-					Suit:   playable.Suit,
+					Rank:   playable.Card.Rank,
+					Suit:   playable.Card.Suit,
 				})
 				if err != nil {
 					t.Fatalf("error playing card: %v", err)

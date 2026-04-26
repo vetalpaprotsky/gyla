@@ -4,15 +4,15 @@ import "slices"
 
 type hand struct {
 	player Player
-	cards  []card
+	cards  []Card
 }
 
-func (h *hand) playCard(c card) bool {
+func (h *hand) playCard(c Card) bool {
 	if !slices.Contains(h.cards, c) {
 		return false
 	}
 
-	newCards := make([]card, 0, len(h.cards)-1)
+	newCards := make([]Card, 0, len(h.cards)-1)
 	for _, existing := range h.cards {
 		if existing != c {
 			newCards = append(newCards, existing)
@@ -24,17 +24,17 @@ func (h *hand) playCard(c card) bool {
 	return true
 }
 
-func (h hand) getCard(rank Rank, suit Suit) card {
+func (h hand) getCard(rank Rank, suit Suit) Card {
 	for _, c := range h.cards {
-		if c.rank == rank && c.suit == suit {
+		if c.Rank == rank && c.Suit == suit {
 			return c
 		}
 	}
 
-	return card{}
+	return Card{}
 }
 
-func (h hand) playableCardsFor(trick trick) []card {
+func (h hand) playableCardsFor(trick trick) []Card {
 	// Not h.player turn. No cards playable.
 	if h.player != trick.expectedNextPlayer() {
 		return nil
@@ -49,7 +49,7 @@ func (h hand) playableCardsFor(trick trick) []card {
 	// - You have to go with a trump as well.
 	// - If you don't have trumps then any card works.
 	trickFirstCard := trick.firstCard()
-	if trickFirstCard.isTrump {
+	if trickFirstCard.IsTrump {
 		if len(h.trumps()) > 0 {
 			return h.trumps()
 		} else {
@@ -60,7 +60,7 @@ func (h hand) playableCardsFor(trick trick) []card {
 	// First card in the trick is a plain suit:
 	// - You have to go with the same plain suit card.
 	// - If you don't have any plain cards with that suit then any card works.
-	plainSuitCards := h.plainSuitCards(trickFirstCard.suit)
+	plainSuitCards := h.plainSuitCards(trickFirstCard.Suit)
 	if len(plainSuitCards) > 0 {
 		return plainSuitCards
 	} else {
@@ -68,16 +68,16 @@ func (h hand) playableCardsFor(trick trick) []card {
 	}
 }
 
-func (h hand) canPlayCard(card card, trick trick) bool {
+func (h hand) canPlayCard(card Card, trick trick) bool {
 	return slices.Contains(h.playableCardsFor(trick), card)
 }
 
-func (h hand) trumps() []card {
+func (h hand) trumps() []Card {
 	// capacity = 2, just a simple guess
-	trumps := make([]card, 0, 2)
+	trumps := make([]Card, 0, 2)
 
 	for _, c := range h.cards {
-		if c.isTrump {
+		if c.IsTrump {
 			trumps = append(trumps, c)
 		}
 	}
@@ -85,12 +85,12 @@ func (h hand) trumps() []card {
 	return trumps
 }
 
-func (h hand) plainSuitCards(suit Suit) []card {
+func (h hand) plainSuitCards(suit Suit) []Card {
 	// capacity = 2, just a simple guess
-	plainCards := make([]card, 0, 2)
+	plainCards := make([]Card, 0, 2)
 
 	for _, c := range h.cards {
-		if !c.isTrump && c.suit == suit {
+		if !c.IsTrump && c.Suit == suit {
 			plainCards = append(plainCards, c)
 		}
 	}

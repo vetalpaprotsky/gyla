@@ -11,36 +11,54 @@ const (
 	jackOfDiamonds  = int(JackRank) + int(DiamondsSuit)
 )
 
-type card struct {
-	rank    Rank
-	suit    Suit
-	isTrump bool
+type Card struct {
+	Rank    Rank
+	Suit    Suit
+	IsTrump bool
 }
 
-func newCard(rank Rank, suit Suit) (card, error) {
+type HandCard struct {
+	Card       Card
+	IsPlayable bool
+}
+
+type PlayedCard struct {
+	Player Player
+	Card   Card
+}
+
+func (c Card) asHandCard(isPlayable bool) HandCard {
+	return HandCard{Card: c, IsPlayable: isPlayable}
+}
+
+func (c Card) asPlayedCard(player Player) PlayedCard {
+	return PlayedCard{Player: player, Card: c}
+}
+
+func NewCard(rank Rank, suit Suit) (Card, error) {
 	if !rank.isValid() {
-		return card{}, newInvalidRankError(rank)
+		return Card{}, newInvalidRankError(rank)
 	}
 	if !suit.isValid() {
-		return card{}, newInvalidSuitError(suit)
+		return Card{}, newInvalidSuitError(suit)
 	}
 
-	card := card{rank: rank, suit: suit}
-	if card.isDefaultTrump() {
-		card.isTrump = true
+	card := Card{Rank: rank, Suit: suit}
+	if card.IsDefaultTrump() {
+		card.IsTrump = true
 	}
 
 	return card, nil
 }
 
-func (c card) isDefaultTrump() bool {
-	return c.rank == SevenRank || c.rank == JackRank
+func (c Card) IsDefaultTrump() bool {
+	return c.Rank == SevenRank || c.Rank == JackRank
 }
 
-func (c card) level() int {
+func (c Card) level() int {
 	var level int
 
-	if c.isDefaultTrump() {
+	if c.IsDefaultTrump() {
 		switch c.id() {
 		case sevenOfClubs:
 			level = 21
@@ -59,8 +77,8 @@ func (c card) level() int {
 		case jackOfDiamonds:
 			level = 14
 		}
-	} else if c.isTrump {
-		switch c.rank {
+	} else if c.IsTrump {
+		switch c.Rank {
 		case SixRank:
 			level = 22
 		case AceRank:
@@ -77,7 +95,7 @@ func (c card) level() int {
 			level = 8
 		}
 	} else {
-		switch c.rank {
+		switch c.Rank {
 		case AceRank:
 			level = 7
 		case KingRank:
@@ -98,10 +116,6 @@ func (c card) level() int {
 	return level
 }
 
-func (c card) id() int {
-	return int(c.rank) + int(c.suit)
-}
-
-func (c card) state(isPlayable bool) CardState {
-	return newCardState(c, isPlayable)
+func (c Card) id() int {
+	return int(c.Rank) + int(c.Suit)
 }

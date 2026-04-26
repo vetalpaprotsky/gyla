@@ -66,12 +66,12 @@ func chooseTrumpSuit(h *hand) Suit {
 	for i, s := range allSuits {
 		scores[i].suit = s
 		for _, c := range h.cards {
-			if c.isDefaultTrump() {
+			if c.IsDefaultTrump() {
 				continue
 			}
-			if c.suit == s {
+			if c.Suit == s {
 				scores[i].count++
-				scores[i].value += int(c.rank)
+				scores[i].value += int(c.Rank)
 			}
 		}
 	}
@@ -102,7 +102,7 @@ func allPlayedCards(r round) []PlayedCard {
 // already been played in the round.
 func cardHasBeenPlayed(r round, rank Rank, suit Suit) bool {
 	for _, pc := range allPlayedCards(r) {
-		if pc.Card.rank == rank && pc.Card.suit == suit {
+		if pc.Card.Rank == rank && pc.Card.Suit == suit {
 			return true
 		}
 	}
@@ -113,7 +113,7 @@ func cardHasBeenPlayed(r round, rank Rank, suit Suit) bool {
 func countCardsOfSuitInHand(h *hand, suit Suit) int {
 	count := 0
 	for _, c := range h.cards {
-		if !c.isTrump && c.suit == suit {
+		if !c.IsTrump && c.Suit == suit {
 			count++
 		}
 	}
@@ -122,11 +122,11 @@ func countCardsOfSuitInHand(h *hand, suit Suit) int {
 
 // isLastCardOfSuit checks whether a card is the only remaining non-trump card
 // of its suit in the player's hand.
-func isLastCardOfSuit(h *hand, c card) bool {
-	if c.isTrump {
+func isLastCardOfSuit(h *hand, c Card) bool {
+	if c.IsTrump {
 		return false
 	}
-	return countCardsOfSuitInHand(h, c.suit) == 1
+	return countCardsOfSuitInHand(h, c.Suit) == 1
 }
 
 // teammateVoidSuits inspects completed tricks to find suits where the teammate
@@ -147,10 +147,10 @@ func teammateVoidSuits(r round, player Player) map[Suit]bool {
 		// This means "I have no more of this suit, please lead it so I can trump."
 		if t.starter == teammate && len(t.playedCards) > 0 {
 			leadCard := t.playedCards[0].Card
-			if !leadCard.isTrump && leadCard.rank != AceRank {
+			if !leadCard.IsTrump && leadCard.Rank != AceRank {
 				// High card lead (King, Queen, 10) = signal
-				if leadCard.rank == KingRank || leadCard.rank == QueenRank || leadCard.rank == TenRank {
-					voids[leadCard.suit] = true
+				if leadCard.Rank == KingRank || leadCard.Rank == QueenRank || leadCard.Rank == TenRank {
+					voids[leadCard.Suit] = true
 				}
 			}
 		}
@@ -159,12 +159,12 @@ func teammateVoidSuits(r round, player Player) map[Suit]bool {
 		// when the lead was a non-trump suit).
 		if len(t.playedCards) >= 2 {
 			leadCard := t.playedCards[0].Card
-			if !leadCard.isTrump {
+			if !leadCard.IsTrump {
 				for _, pc := range t.playedCards[1:] {
 					if pc.Player == teammate {
 						// Teammate played a different suit or a trump instead of following
-						if pc.Card.isTrump || pc.Card.suit != leadCard.suit {
-							voids[leadCard.suit] = true
+						if pc.Card.IsTrump || pc.Card.Suit != leadCard.Suit {
+							voids[leadCard.Suit] = true
 						}
 					}
 				}
@@ -188,14 +188,14 @@ func opponentVoidSuits(r round, player Player) map[Suit]bool {
 		}
 
 		leadCard := t.playedCards[0].Card
-		if leadCard.isTrump {
+		if leadCard.IsTrump {
 			continue
 		}
 
 		for _, pc := range t.playedCards[1:] {
 			if pc.Player == opp1 || pc.Player == opp2 {
-				if pc.Card.isTrump || pc.Card.suit != leadCard.suit {
-					voids[leadCard.suit] = true
+				if pc.Card.IsTrump || pc.Card.Suit != leadCard.Suit {
+					voids[leadCard.Suit] = true
 				}
 			}
 		}
@@ -214,7 +214,7 @@ func chooseCard(curRound round, player Player) Action {
 		panic("AI: no playable cards for expected next player")
 	}
 
-	var chosen card
+	var chosen Card
 	if curTrick.isEmpty() {
 		chosen = chooseLead(h, playable, curRound, player)
 	} else {
@@ -224,8 +224,8 @@ func chooseCard(curRound round, player Player) Action {
 	return Action{
 		Name:   PlayCardAction,
 		Player: player,
-		Rank:   chosen.rank,
-		Suit:   chosen.suit,
+		Rank:   chosen.Rank,
+		Suit:   chosen.Suit,
 	}
 }
 
@@ -239,7 +239,7 @@ func chooseCard(curRound round, player Player) Action {
 //  4. If we have lots of trumps, flush opponents by leading high trump.
 //  5. Lead the last card of a suit as a signal to teammate.
 //  6. Fall back to lowest non-trump, then lowest trump.
-func chooseLead(h *hand, playable []card, r round, player Player) card {
+func chooseLead(h *hand, playable []Card, r round, player Player) Card {
 	nonTrumps := filterNonTrumps(playable)
 	trumps := filterTrumps(playable)
 	tmVoids := teammateVoidSuits(r, player)
@@ -250,9 +250,9 @@ func chooseLead(h *hand, playable []card, r round, player Player) card {
 	//    Pick our highest card in that suit to try to win or at least force
 	//    opponents to use a trump.
 	if len(tmVoids) > 0 && len(nonTrumps) > 0 {
-		var candidates []card
+		var candidates []Card
 		for _, c := range nonTrumps {
-			if tmVoids[c.suit] && !oppVoids[c.suit] {
+			if tmVoids[c.Suit] && !oppVoids[c.Suit] {
 				candidates = append(candidates, c)
 			}
 		}
@@ -263,7 +263,7 @@ func chooseLead(h *hand, playable []card, r round, player Player) card {
 
 	// 2. Lead with Aces — safest high card lead, very likely to win.
 	for _, c := range nonTrumps {
-		if c.rank == AceRank {
+		if c.Rank == AceRank {
 			return c
 		}
 	}
@@ -272,8 +272,8 @@ func chooseLead(h *hand, playable []card, r round, player Player) card {
 	//    a) The Ace of that suit has already been played (good chance to win), OR
 	//    b) It's the last card of that suit (signal to teammate).
 	for _, c := range nonTrumps {
-		if c.rank == KingRank {
-			aceGone := cardHasBeenPlayed(r, AceRank, c.suit)
+		if c.Rank == KingRank {
+			aceGone := cardHasBeenPlayed(r, AceRank, c.Suit)
 			lastOfSuit := isLastCardOfSuit(h, c)
 			if aceGone || lastOfSuit {
 				return c
@@ -289,9 +289,9 @@ func chooseLead(h *hand, playable []card, r round, player Player) card {
 
 	// 5. Signal: if we have a card that is the last of its suit, play it
 	//    (high-ish card preferred) to tell teammate we're void after this.
-	var signals []card
+	var signals []Card
 	for _, c := range nonTrumps {
-		if isLastCardOfSuit(h, c) && (c.rank == QueenRank || c.rank == TenRank || c.rank == KingRank) {
+		if isLastCardOfSuit(h, c) && (c.Rank == QueenRank || c.Rank == TenRank || c.Rank == KingRank) {
 			signals = append(signals, c)
 		}
 	}
@@ -309,7 +309,7 @@ func chooseLead(h *hand, playable []card, r round, player Player) card {
 }
 
 // chooseFollow picks a card when the AI is following in a trick.
-func chooseFollow(h *hand, playable []card, t trick, player Player, r round) card {
+func chooseFollow(h *hand, playable []Card, t trick, player Player, r round) Card {
 	teammate := player.teammate()
 	currentWinner := currentTrickWinner(t)
 	teammateIsWinning := currentWinner == teammate
@@ -335,7 +335,7 @@ func chooseFollow(h *hand, playable []card, t trick, player Player, r round) car
 // Priorities:
 // - Dump from a suit where we have few cards (getting void = can trump later).
 // - Among those, dump the lowest card.
-func dumpCard(h *hand, playable []card, r round, player Player) card {
+func dumpCard(h *hand, playable []Card, r round, player Player) Card {
 	nonTrumps := filterNonTrumps(playable)
 
 	// Prefer dumping non-trump cards to preserve trumps.
@@ -347,7 +347,7 @@ func dumpCard(h *hand, playable []card, r round, player Player) card {
 		}
 		suitCounts := map[Suit]int{}
 		for _, c := range nonTrumps {
-			suitCounts[c.suit] = countCardsOfSuitInHand(h, c.suit)
+			suitCounts[c.Suit] = countCardsOfSuitInHand(h, c.Suit)
 		}
 
 		// Find the minimum count.
@@ -359,9 +359,9 @@ func dumpCard(h *hand, playable []card, r round, player Player) card {
 		}
 
 		// Among suits with the fewest cards, pick the lowest card.
-		var candidates []card
+		var candidates []Card
 		for _, c := range nonTrumps {
-			if suitCounts[c.suit] == minCount {
+			if suitCounts[c.Suit] == minCount {
 				candidates = append(candidates, c)
 			}
 		}
@@ -392,9 +392,9 @@ func currentTrickWinner(t trick) Player {
 			}
 		}
 	} else {
-		leadingSuit := t.playedCards[0].Card.suit
+		leadingSuit := t.playedCards[0].Card.Suit
 		for _, pc := range t.playedCards {
-			if pc.Card.suit == leadingSuit && pc.Card.level() > winCard.level() {
+			if pc.Card.Suit == leadingSuit && pc.Card.level() > winCard.level() {
 				winPlayer = pc.Player
 				winCard = pc.Card
 			}
@@ -406,7 +406,7 @@ func currentTrickWinner(t trick) Player {
 
 // findWinningCards returns the subset of playable cards that would currently
 // win the trick if played.
-func findWinningCards(playable []card, t trick) []card {
+func findWinningCards(playable []Card, t trick) []Card {
 	if len(t.playedCards) == 0 {
 		return playable
 	}
@@ -422,15 +422,15 @@ func findWinningCards(playable []card, t trick) []card {
 			}
 		}
 	} else {
-		leadingSuit := t.playedCards[0].Card.suit
+		leadingSuit := t.playedCards[0].Card.Suit
 		for _, pc := range t.playedCards {
-			if pc.Card.suit == leadingSuit && pc.Card.level() > bestCard.level() {
+			if pc.Card.Suit == leadingSuit && pc.Card.level() > bestCard.level() {
 				bestCard = pc.Card
 			}
 		}
 	}
 
-	var winners []card
+	var winners []Card
 	for _, c := range playable {
 		if wouldBeat(c, bestCard, t) {
 			winners = append(winners, c)
@@ -441,23 +441,23 @@ func findWinningCards(playable []card, t trick) []card {
 }
 
 // wouldBeat checks if candidate would beat current best in the context of the trick.
-func wouldBeat(candidate, best card, t trick) bool {
-	leadingSuit := t.playedCards[0].Card.suit
-	hasTrumps := hasAnyTrumpsInPlayed(t.playedCards) || best.isTrump
+func wouldBeat(candidate, best Card, t trick) bool {
+	leadingSuit := t.playedCards[0].Card.Suit
+	hasTrumps := hasAnyTrumpsInPlayed(t.playedCards) || best.IsTrump
 
 	if hasTrumps {
-		if !candidate.isTrump {
+		if !candidate.IsTrump {
 			return false
 		}
 		return candidate.level() > best.level()
 	}
 
 	// No trumps in trick so far.
-	if candidate.isTrump {
+	if candidate.IsTrump {
 		return true
 	}
 
-	if candidate.suit == leadingSuit && candidate.level() > best.level() {
+	if candidate.Suit == leadingSuit && candidate.level() > best.level() {
 		return true
 	}
 
@@ -466,7 +466,7 @@ func wouldBeat(candidate, best card, t trick) bool {
 
 func hasAnyTrumpsInPlayed(played []PlayedCard) bool {
 	for _, pc := range played {
-		if pc.Card.isTrump {
+		if pc.Card.IsTrump {
 			return true
 		}
 	}
@@ -475,27 +475,27 @@ func hasAnyTrumpsInPlayed(played []PlayedCard) bool {
 
 // --- Helpers ---
 
-func filterTrumps(cards []card) []card {
-	var result []card
+func filterTrumps(cards []Card) []Card {
+	var result []Card
 	for _, c := range cards {
-		if c.isTrump {
+		if c.IsTrump {
 			result = append(result, c)
 		}
 	}
 	return result
 }
 
-func filterNonTrumps(cards []card) []card {
-	var result []card
+func filterNonTrumps(cards []Card) []Card {
+	var result []Card
 	for _, c := range cards {
-		if !c.isTrump {
+		if !c.IsTrump {
 			result = append(result, c)
 		}
 	}
 	return result
 }
 
-func highestCard(cards []card) card {
+func highestCard(cards []Card) Card {
 	best := cards[0]
 	for _, c := range cards[1:] {
 		if c.level() > best.level() {
@@ -505,7 +505,7 @@ func highestCard(cards []card) card {
 	return best
 }
 
-func lowestCard(cards []card) card {
+func lowestCard(cards []Card) Card {
 	worst := cards[0]
 	for _, c := range cards[1:] {
 		if c.level() < worst.level() {

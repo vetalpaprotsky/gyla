@@ -27,11 +27,11 @@ outer:
 	}
 }
 
-func includeAllSuitsOf(cards []card, rank Rank) bool {
+func includeAllSuitsOf(cards []Card, rank Rank) bool {
 	count := 0
 
 	for _, c := range cards {
-		if c.rank == rank {
+		if c.Rank == rank {
 			count += 1
 		}
 	}
@@ -39,15 +39,15 @@ func includeAllSuitsOf(cards []card, rank Rank) bool {
 	return count == len(allSuits)
 }
 
-func shuffledDeck() []card {
+func shuffledDeck() []Card {
 	shuffledIndexes := createSliceWithShuffledIndexes()
-	cards := make([]card, cardsCount)
+	cards := make([]Card, cardsCount)
 	k := 0
 
 	for _, r := range allRanks {
 		for _, s := range allSuits {
 			randInx := shuffledIndexes[k]
-			card, err := newCard(r, s)
+			card, err := NewCard(r, s)
 			if err != nil {
 				panic(err)
 			}

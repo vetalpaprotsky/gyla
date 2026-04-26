@@ -2,7 +2,7 @@ package game
 
 type HandState struct {
 	Player Player
-	Cards  []CardState
+	Cards  []HandCard
 }
 
 func newHandState(h hand, t trick) HandState {
@@ -19,7 +19,7 @@ func newHandState(h hand, t trick) HandState {
 			}
 		}
 
-		state.Cards = append(state.Cards, c.state(isPlayable))
+		state.Cards = append(state.Cards, c.asHandCard(isPlayable))
 	}
 
 	return state
