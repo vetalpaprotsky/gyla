@@ -1,35 +1,20 @@
 package game
 
-// Clients must store events in the FIFO queue on their side, and read them
-// one by one. Server will expect actions to be sent after some events, but not all.
-
+// Events are ordered by their lifecycle.
 const (
-	// After this event, players must see what move a player made.
-	PlayerMovedEvent = "player_moved"
-
-	// After this event, players must see what suit is a trump now.
-	TrumpChosenEvent = "trump_chosen"
-
-	// After this event, round starter must choose a trump.
-	RoundStartedEvent = "round_started"
-
-	// After this event, players must see who won the round.
-	RoundCompletedEvent = "round_completed"
-
-	// After this event, trick starter must made the first move.
-	TrickStartedEvent = "trick_started"
-
-	// After this event, players must see which player won a trick.
-	TrickCompletedEvent = "trick_completed"
-
-	// After this event, players must see a welcome message.
-	GameStartedEvent = "game_started"
-
-	// After this event, players must see which team won the game.
-	GameCompletedEvent = "game_completed"
+	GameStartedEvent                 = "game_started"
+	RoundStartedEvent                = "round_started"
+	TrumpAssignedEvent               = "trump_assigned"
+	TrickStartedEvent                = "trick_started"
+	CardPlayedEvent                  = "card_played"
+	CardPlayedAndTrickCompletedEvent = "card_played_and_trick_completed"
+	CardPlayedAndRoundCompletedEvent = "card_played_and_round_completed"
+	CardPlayedAndGameCompletedEvent  = "card_played_and_game_completed"
 )
 
+type EventType string
+
 type GameEvent struct {
+	EventType EventType
 	GameState GameState
-	Event     string
 }
