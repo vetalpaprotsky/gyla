@@ -4,6 +4,8 @@ import (
 	"math/rand/v2"
 )
 
+// NOTE: This AI is AI-generated :D
+
 func applyAIActions(g *Game) {
 	for {
 		if !applyAIAction(g) {
