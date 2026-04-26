@@ -17,6 +17,7 @@ const (
 	repeatedTrumpAssignmentError
 	invalidTrumpError
 	unexpectedTrumperError
+	gameNotStartedError
 	gameAlreadyStartedError
 	gameCompletedError
 )
@@ -127,6 +128,12 @@ func newUnexpectedTrumperError(actual Player, expected Player) gameError {
 		fmt.Sprintf(
 			"%v cannot assign trump: %v must do it", actual, expected,
 		),
+	}
+}
+
+func newGameNotStartedError() gameError {
+	return gameError{
+		gameNotStartedError, "game has not started yet",
 	}
 }
 

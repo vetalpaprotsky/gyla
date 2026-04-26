@@ -239,7 +239,7 @@ func (r round) winTeam() Team {
 }
 
 func (r round) isTrumpAssigned() bool {
-	return r.trump.isZero()
+	return !r.trump.isZero()
 }
 
 func (r round) starterTeam() Team {

@@ -50,15 +50,19 @@ func (g *Game) Apply(action Action) ([]GameEvent, error) {
 	err := g.apply(action)
 
 	if err != nil {
-		applyAIActions(g)
-	} else {
 		return nil, err
+	} else {
+		applyAIActions(g)
 	}
 
 	return g.dequeueEvents(), nil
 }
 
 func (g *Game) apply(action Action) error {
+	if g.currentRound().isZero() {
+		return newGameNotStartedError()
+	}
+
 	var err error
 	switch action.Name {
 	case AssignTrumpAction:
@@ -151,6 +155,7 @@ func (g *Game) assignTrump(suit Suit, player Player) error {
 	}
 
 	g.enqueueEvent(TrumpAssignedEvent)
+	g.startNextTrick()
 	applyAIActions(g)
 
 	return nil
