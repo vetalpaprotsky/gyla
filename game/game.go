@@ -59,25 +59,28 @@ func (g *Game) Apply(action Action) ([]GameEvent, error) {
 }
 
 func (g *Game) apply(action Action) error {
-	if g.currentRound().isZero() {
-		return newGameNotStartedError()
+	next := g.nextAction()
+
+	if next.isZero() {
+		return newNoActionExpectedError()
 	}
 
-	var err error
+	if action.Name != next.Name {
+		return newUnexpectedActionError(action.Name, next.Name)
+	}
+
+	if action.Player != next.Player {
+		return newUnexpectedPlayerError(action.Player, next.Player)
+	}
+
 	switch action.Name {
 	case AssignTrumpAction:
-		err = g.assignTrump(action.Suit, action.Player)
+		return g.assignTrump(action.Suit, action.Player)
 	case PlayCardAction:
-		err = g.playCard(action.Rank, action.Suit, action.Player)
+		return g.playCard(action.Rank, action.Suit, action.Player)
 	default:
-		err = fmt.Errorf("unexpected action: %s", action.Name)
+		panic(fmt.Sprintf("unknown action: %s", action.Name))
 	}
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (g *Game) startNextRound() {
@@ -115,10 +118,6 @@ func (g *Game) startNextTrick() {
 }
 
 func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
-	if g.isCompleted() {
-		return newGameCompletedError()
-	}
-
 	curRound := g.currentRoundPtr()
 	if err := curRound.playCard(rank, suit, player); err != nil {
 		return err
@@ -146,10 +145,6 @@ func (g *Game) playCard(rank Rank, suit Suit, player Player) error {
 }
 
 func (g *Game) assignTrump(suit Suit, player Player) error {
-	if g.isCompleted() {
-		return newGameCompletedError()
-	}
-
 	if err := g.currentRoundPtr().assignTrump(suit, player); err != nil {
 		return err
 	}
@@ -212,4 +207,33 @@ func (g Game) getParticipant(p Player) Participant {
 	}
 
 	return Participant{}
+}
+
+func (g Game) nextAction() NextAction {
+	curRound := g.currentRound()
+	if curRound.isZero() {
+		return NextAction{}
+	}
+
+	if !curRound.isTrumpAssigned() {
+		return NextAction{
+			Player: curRound.starter,
+			Name:   AssignTrumpAction,
+		}
+	}
+
+	curTrick := curRound.currentTrick()
+	if curTrick.isZero() {
+		return NextAction{}
+	}
+
+	nextPlayer := curTrick.expectedNextPlayer()
+	if !nextPlayer.isZero() {
+		return NextAction{
+			Player: nextPlayer,
+			Name:   PlayCardAction,
+		}
+	}
+
+	return NextAction{}
 }

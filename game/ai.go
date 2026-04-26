@@ -29,36 +29,25 @@ func applyAIAction(g *Game) bool {
 }
 
 func getAIAction(g *Game) Action {
-	if action := tryToAssignTrump(g); !action.isZero() {
-		return action
+	next := g.nextAction()
+	if next.isZero() || !g.getParticipant(next.Player).IsAI {
+		return Action{}
 	}
 
-	if action := tryToPlayCard(g); !action.isZero() {
-		return action
-	}
-
-	return Action{}
-}
-
-// --- Trump Assignment ---
-
-func tryToAssignTrump(g *Game) Action {
 	curRound := g.currentRound()
 
-	if curRound.isTrumpAssigned() {
+	switch next.Name {
+	case AssignTrumpAction:
+		suit := chooseTrumpSuit(curRound.getHand(next.Player))
+		return Action{
+			Name:   AssignTrumpAction,
+			Player: next.Player,
+			Suit:   suit,
+		}
+	case PlayCardAction:
+		return chooseCard(curRound, next.Player)
+	default:
 		return Action{}
-	}
-
-	if !g.getParticipant(curRound.starter).IsAI {
-		return Action{}
-	}
-
-	suit := chooseTrumpSuit(curRound.getHand(curRound.starter))
-
-	return Action{
-		Name:   AssignTrumpAction,
-		Player: curRound.starter,
-		Suit:   suit,
 	}
 }
 
@@ -217,18 +206,8 @@ func opponentVoidSuits(r round, player Player) map[Suit]bool {
 
 // --- Card Play ---
 
-func tryToPlayCard(g *Game) Action {
-	curRound := g.currentRound()
+func chooseCard(curRound round, player Player) Action {
 	curTrick := curRound.currentTrick()
-	if curTrick.isZero() {
-		return Action{}
-	}
-
-	player := curTrick.expectedNextPlayer()
-	if player.isZero() || !g.getParticipant(player).IsAI {
-		return Action{}
-	}
-
 	h := curRound.getHand(player)
 	playable := h.playableCardsFor(curTrick)
 	if len(playable) == 0 {

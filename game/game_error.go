@@ -17,7 +17,8 @@ const (
 	repeatedTrumpAssignmentError
 	invalidTrumpError
 	unexpectedTrumperError
-	gameNotStartedError
+	noActionExpectedError
+	unexpectedActionError
 	gameAlreadyStartedError
 	gameCompletedError
 )
@@ -131,9 +132,16 @@ func newUnexpectedTrumperError(actual Player, expected Player) gameError {
 	}
 }
 
-func newGameNotStartedError() gameError {
+func newNoActionExpectedError() gameError {
 	return gameError{
-		gameNotStartedError, "game has not started yet",
+		noActionExpectedError, "no action expected",
+	}
+}
+
+func newUnexpectedActionError(actual, expected string) gameError {
+	return gameError{
+		unexpectedActionError,
+		fmt.Sprintf("expecting %s action, not %s", expected, actual),
 	}
 }
 

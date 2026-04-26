@@ -4,6 +4,7 @@ type GameState struct {
 	Round        RoundState
 	Stats        GameStats
 	Participants []Participant
+	NextAction   NextAction
 }
 
 func newGameState(g Game) GameState {
@@ -11,6 +12,7 @@ func newGameState(g Game) GameState {
 		Round:        g.currentRound().state(),
 		Stats:        g.stats,
 		Participants: g.participants,
+		NextAction:   g.nextAction(),
 	}
 }
 
@@ -31,8 +33,9 @@ func (gs GameState) ViewFor(p Player) GameView {
 		Teammate:      gs.getParticipant(p.teammate()),
 		RightOpponent: gs.getParticipant(p.rightOpponent()),
 
-		Round: gs.Round.ViewFor(p),
-		Stats: gs.Stats,
+		Round:      gs.Round.ViewFor(p),
+		Stats:      gs.Stats,
+		NextAction: gs.NextAction,
 	}
 }
 
@@ -42,6 +45,7 @@ type GameView struct {
 	Teammate      Participant
 	RightOpponent Participant
 
-	Round RoundView
-	Stats GameStats
+	Round      RoundView
+	Stats      GameStats
+	NextAction NextAction
 }

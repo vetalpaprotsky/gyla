@@ -5,6 +5,15 @@ const (
 	AssignTrumpAction = "assign_trump"
 )
 
+type NextAction struct {
+	Name   string
+	Player Player
+}
+
+func (na NextAction) isZero() bool {
+	return na.Name == ""
+}
+
 type Action struct {
 	Name   string
 	Player Player
