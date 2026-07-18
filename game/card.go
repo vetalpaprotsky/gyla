@@ -22,17 +22,8 @@ type HandCard struct {
 	IsPlayable bool
 }
 
-type PlayedCard struct {
-	Player Player
-	Card   Card
-}
-
 func (c Card) asHandCard(isPlayable bool) HandCard {
 	return HandCard{Card: c, IsPlayable: isPlayable}
-}
-
-func (c Card) asPlayedCard(player Player) PlayedCard {
-	return PlayedCard{Player: player, Card: c}
 }
 
 func NewCard(rank Rank, suit Suit) (Card, error) {

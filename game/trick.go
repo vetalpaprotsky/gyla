@@ -5,14 +5,14 @@ const tricksPerRoundCount = 9
 type trick struct {
 	number      int
 	starter     Player
-	playedCards []PlayedCard
+	playedCards map[Player]Card
 }
 
 func newFirstTrick(starter Player) trick {
 	return trick{
 		number:      1,
 		starter:     starter,
-		playedCards: make([]PlayedCard, 0, len(allPlayers)),
+		playedCards: make(map[Player]Card, len(allPlayers)),
 	}
 }
 
@@ -29,7 +29,7 @@ func newTrick(curTrick trick) (trick, error) {
 	return trick{
 		number:      curTrick.number + 1,
 		starter:     winner,
-		playedCards: make([]PlayedCard, 0, len(allPlayers)),
+		playedCards: make(map[Player]Card, len(allPlayers)),
 	}, nil
 }
 
@@ -40,7 +40,7 @@ func (t *trick) addCard(player Player, card Card) error {
 		return newUnexpectedPlayerError(player, expPlr)
 	}
 
-	t.playedCards = append(t.playedCards, card.asPlayedCard(player))
+	t.playedCards[player] = card
 	return nil
 }
 
@@ -53,19 +53,19 @@ func (t trick) winner() Player {
 	winCard := t.firstCard()
 
 	if t.hasAnyTrumps() {
-		for _, pc := range t.playedCards {
-			if pc.Card.level() > winCard.level() {
-				winPlayer = pc.Player
-				winCard = pc.Card
+		for player, card := range t.playedCards {
+			if card.level() > winCard.level() {
+				winPlayer = player
+				winCard = card
 			}
 		}
 	} else {
 		leadingSuit := t.firstCard().Suit
 
-		for _, pc := range t.playedCards {
-			if pc.Card.Suit == leadingSuit && pc.Card.level() > winCard.level() {
-				winPlayer = pc.Player
-				winCard = pc.Card
+		for player, card := range t.playedCards {
+			if card.Suit == leadingSuit && card.level() > winCard.level() {
+				winPlayer = player
+				winCard = card
 			}
 		}
 	}
@@ -78,12 +78,12 @@ func (t trick) firstCard() Card {
 		return Card{}
 	}
 
-	return t.playedCards[0].Card
+	return t.playedCards[t.starter]
 }
 
 func (t trick) hasAnyTrumps() bool {
-	for _, pc := range t.playedCards {
-		if pc.Card.IsTrump {
+	for _, card := range t.playedCards {
+		if card.IsTrump {
 			return true
 		}
 	}
@@ -104,12 +104,12 @@ func (t trick) expectedNextPlayer() Player {
 		return Player(0)
 	}
 
-	if t.isEmpty() {
-		return t.starter
+	player := t.starter
+	for i := 0; i < len(t.playedCards); i++ {
+		player = player.leftOpponent()
 	}
 
-	lastPlayer := t.playedCards[len(t.playedCards)-1].Player
-	return lastPlayer.leftOpponent()
+	return player
 }
 
 func (t trick) isZero() bool {
