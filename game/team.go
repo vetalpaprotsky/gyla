@@ -2,6 +2,11 @@ package game
 
 type Team int
 
+type TeamInfo struct {
+	Team Team
+	Name string
+}
+
 const (
 	Team1 = Team(1)
 	Team2 = Team(2)

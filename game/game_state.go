@@ -1,37 +1,35 @@
 package game
 
 type GameState struct {
-	Round        RoundState
-	Stats        GameStats
-	Participants []Participant
-	NextAction   NextAction
+	Round       RoundState
+	Stats       GameStats
+	PlayersInfo map[Player]PlayerInfo
+	TeamsInfo   map[Team]TeamInfo
+	NextAction  NextAction
 }
 
 func newGameState(g Game) GameState {
 	return GameState{
-		Round:        g.currentRound().state(),
-		Stats:        g.stats,
-		Participants: g.participants,
-		NextAction:   g.nextAction(),
+		Round:       g.currentRound().state(),
+		Stats:       g.stats,
+		PlayersInfo: g.playersInfo,
+		TeamsInfo:   g.teamsInfo,
+		NextAction:  g.nextAction(),
 	}
-}
-
-func (gs GameState) getParticipant(p Player) Participant {
-	for _, participant := range gs.Participants {
-		if participant.Player == p {
-			return participant
-		}
-	}
-
-	return Participant{}
 }
 
 func (gs GameState) ViewFor(p Player) GameView {
 	return GameView{
-		You:           gs.getParticipant(p),
-		LeftOpponent:  gs.getParticipant(p.leftOpponent()),
-		Teammate:      gs.getParticipant(p.teammate()),
-		RightOpponent: gs.getParticipant(p.rightOpponent()),
+		You:           p,
+		LeftOpponent:  p.leftOpponent(),
+		Teammate:      p.teammate(),
+		RightOpponent: p.rightOpponent(),
+
+		YourTeam:      p.team(),
+		OpponentsTeam: p.opponentTeam(),
+
+		PlayersInfo: gs.PlayersInfo,
+		TeamsInfo:   gs.TeamsInfo,
 
 		Round:      gs.Round.ViewFor(p),
 		Stats:      gs.Stats,
@@ -40,10 +38,16 @@ func (gs GameState) ViewFor(p Player) GameView {
 }
 
 type GameView struct {
-	You           Participant
-	LeftOpponent  Participant
-	Teammate      Participant
-	RightOpponent Participant
+	You           Player
+	LeftOpponent  Player
+	Teammate      Player
+	RightOpponent Player
+
+	YourTeam      Team
+	OpponentsTeam Team
+
+	PlayersInfo map[Player]PlayerInfo
+	TeamsInfo   map[Team]TeamInfo
 
 	Round      RoundView
 	Stats      GameStats

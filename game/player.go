@@ -2,6 +2,14 @@ package game
 
 type Player int
 
+type PlayerInfo struct {
+	Player     Player
+	TeamInfo   TeamInfo
+	Name       string
+	IsAI       bool
+	ExternalID string
+}
+
 const (
 	Player1 = Player(1)
 	Player2 = Player(2)

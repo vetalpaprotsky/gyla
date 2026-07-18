@@ -30,7 +30,7 @@ func applyAIAction(g *Game) bool {
 
 func getAIAction(g *Game) Action {
 	next := g.nextAction()
-	if next.isZero() || !g.getParticipant(next.Player).IsAI {
+	if next.isZero() || !g.playersInfo[next.Player].IsAI {
 		return Action{}
 	}
 

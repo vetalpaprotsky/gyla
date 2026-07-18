@@ -49,10 +49,10 @@ func TestGameWorkflow(t *testing.T) {
 			t.Errorf("expected second event to be %s, got %s", RoundStartedEvent, events[1].EventType)
 		}
 
-		// Verify game state has participants
+		// Verify game state has player info
 		state := events[len(events)-1].GameState
-		if len(state.Participants) != 4 {
-			t.Errorf("expected 4 participants, got %d", len(state.Participants))
+		if len(state.PlayersInfo) != 4 {
+			t.Errorf("expected 4 players, got %d", len(state.PlayersInfo))
 		}
 
 		// Round 1 should be started
@@ -402,9 +402,9 @@ func TestGameWorkflow(t *testing.T) {
 
 		// Each event should carry a valid GameState
 		for i, e := range events {
-			if len(e.GameState.Participants) != 4 {
-				t.Errorf("event %d (%s): expected 4 participants, got %d",
-					i, e.EventType, len(e.GameState.Participants))
+			if len(e.GameState.PlayersInfo) != 4 {
+				t.Errorf("event %d (%s): expected 4 players, got %d",
+					i, e.EventType, len(e.GameState.PlayersInfo))
 			}
 			// GameStartedEvent is emitted before the first round starts, so round number is 0
 			if e.EventType == GameStartedEvent {
@@ -429,17 +429,17 @@ func TestGameWorkflow(t *testing.T) {
 
 		view := state.ViewFor(Player1)
 
-		if view.You.Player != Player1 {
-			t.Errorf("expected You to be Player1, got %v", view.You.Player)
+		if view.You != Player1 {
+			t.Errorf("expected You to be Player1, got %v", view.You)
 		}
-		if view.LeftOpponent.Player != Player2 {
-			t.Errorf("expected LeftOpponent to be Player2, got %v", view.LeftOpponent.Player)
+		if view.LeftOpponent != Player2 {
+			t.Errorf("expected LeftOpponent to be Player2, got %v", view.LeftOpponent)
 		}
-		if view.Teammate.Player != Player3 {
-			t.Errorf("expected Teammate to be Player3, got %v", view.Teammate.Player)
+		if view.Teammate != Player3 {
+			t.Errorf("expected Teammate to be Player3, got %v", view.Teammate)
 		}
-		if view.RightOpponent.Player != Player4 {
-			t.Errorf("expected RightOpponent to be Player4, got %v", view.RightOpponent.Player)
+		if view.RightOpponent != Player4 {
+			t.Errorf("expected RightOpponent to be Player4, got %v", view.RightOpponent)
 		}
 
 		// View should show own hand cards but only counts for others
@@ -667,9 +667,9 @@ func TestGameWorkflow(t *testing.T) {
 			// If no tricks yet, the starter needs to assign trump
 			if len(curState.Round.Tricks) == 0 {
 				starter := curState.Round.Trumper
-				participant := curState.getParticipant(starter)
+				playerInfo := curState.PlayersInfo[starter]
 
-				if participant.IsAI {
+				if playerInfo.IsAI {
 					t.Fatal("AI starter should have assigned trump automatically")
 				}
 
@@ -692,8 +692,8 @@ func TestGameWorkflow(t *testing.T) {
 					t.Fatal("no next player but game not completed")
 				}
 
-				participant := curState.getParticipant(nextPlayer)
-				if participant.IsAI {
+				playerInfo := curState.PlayersInfo[nextPlayer]
+				if playerInfo.IsAI {
 					t.Fatalf("AI player %v should have played automatically", nextPlayer)
 				}
 
@@ -747,7 +747,7 @@ func TestGameWorkflow(t *testing.T) {
 		state := events[len(events)-1].GameState
 		starter := state.Round.Trumper
 
-		if g.getParticipant(starter).IsAI {
+		if g.playersInfo[starter].IsAI {
 			// AI starter should have already assigned trump during Start
 			// and potentially played several cards
 			if len(events) < 3 {
@@ -776,8 +776,8 @@ func TestGameWorkflow(t *testing.T) {
 			if len(tricks) > 0 {
 				nextPlayer := tricks[len(tricks)-1].Next
 				if !nextPlayer.isZero() {
-					participant := lastState.getParticipant(nextPlayer)
-					if participant.IsAI {
+					playerInfo := lastState.PlayersInfo[nextPlayer]
+					if playerInfo.IsAI {
 						t.Errorf("expected next player to be human, but got AI player %v", nextPlayer)
 					}
 				}

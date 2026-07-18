@@ -3,31 +3,27 @@ package game
 import "fmt"
 
 type Game struct {
-	rounds       []round
-	eventsQueue  []GameEvent
-	participants []Participant
-	stats        GameStats
+	rounds      []round
+	eventsQueue []GameEvent
+	playersInfo map[Player]PlayerInfo
+	teamsInfo   map[Team]TeamInfo
+	stats       GameStats
 }
 
 func NewGame(p1, p2, p3, p4 string, t1, t2 string, ai1, ai2, ai3, ai4 bool) Game {
+	team1Info := TeamInfo{Team: Team1, Name: t1}
+	team2Info := TeamInfo{Team: Team2, Name: t2}
+
 	game := Game{
-		participants: []Participant{
-			{
-				Player: Player1, Team: Team1,
-				PlayerName: p1, TeamName: t1, IsAI: ai1,
-			},
-			{
-				Player: Player2, Team: Team2,
-				PlayerName: p2, TeamName: t2, IsAI: ai2,
-			},
-			{
-				Player: Player3, Team: Team1,
-				PlayerName: p3, TeamName: t1, IsAI: ai3,
-			},
-			{
-				Player: Player4, Team: Team2,
-				PlayerName: p4, TeamName: t2, IsAI: ai4,
-			},
+		playersInfo: map[Player]PlayerInfo{
+			Player1: {Player: Player1, TeamInfo: team1Info, Name: p1, IsAI: ai1},
+			Player2: {Player: Player2, TeamInfo: team2Info, Name: p2, IsAI: ai2},
+			Player3: {Player: Player3, TeamInfo: team1Info, Name: p3, IsAI: ai3},
+			Player4: {Player: Player4, TeamInfo: team2Info, Name: p4, IsAI: ai4},
+		},
+		teamsInfo: map[Team]TeamInfo{
+			Team1: team1Info,
+			Team2: team2Info,
 		},
 	}
 
@@ -197,16 +193,6 @@ func (g Game) currentRoundPtr() *round {
 
 func (g Game) isCompleted() bool {
 	return !g.stats.WinTeam.isZero()
-}
-
-func (g Game) getParticipant(p Player) Participant {
-	for _, participant := range g.participants {
-		if participant.Player == p {
-			return participant
-		}
-	}
-
-	return Participant{}
 }
 
 func (g Game) nextAction() NextAction {
