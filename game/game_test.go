@@ -136,12 +136,12 @@ func TestGameWorkflow(t *testing.T) {
 
 		// Get updated state
 		curState := g.State()
-		curTrick := curState.Round.Tricks
-		if len(curTrick) == 0 {
+		curTrick := curState.Round.CurrentTrick
+		if curTrick.Number == 0 {
 			t.Fatal("expected at least one trick after trump assignment")
 		}
 
-		nextPlayer := curTrick[len(curTrick)-1].Next
+		nextPlayer := curTrick.Next
 
 		// Wrong player tries to play
 		wrongPlayer := nextPlayer.leftOpponent()
@@ -200,12 +200,11 @@ func TestGameWorkflow(t *testing.T) {
 		cardsPlayed := 0
 		for cardsPlayed < 36 {
 			curState := g.State()
-			tricks := curState.Round.Tricks
-			if len(tricks) == 0 {
+			curTrick := curState.Round.CurrentTrick
+			if curTrick.Number == 0 {
 				t.Fatal("expected at least one trick")
 			}
 
-			curTrick := tricks[len(tricks)-1]
 			nextPlayer := curTrick.Next
 
 			if nextPlayer.isZero() {
@@ -287,7 +286,7 @@ func TestGameWorkflow(t *testing.T) {
 			curState := g.State()
 
 			// Assign trump if needed (check if tricks have started)
-			if len(curState.Round.Tricks) == 0 {
+			if curState.Round.CurrentTrick.Number == 0 {
 				starter := curState.Round.Trumper
 				events, err = g.Apply(Action{
 					Name:   AssignTrumpAction,
@@ -302,12 +301,11 @@ func TestGameWorkflow(t *testing.T) {
 			// Play cards until round ends
 			for {
 				curState = g.State()
-				tricks := curState.Round.Tricks
-				if len(tricks) == 0 {
+				curTrick := curState.Round.CurrentTrick
+				if curTrick.Number == 0 {
 					break
 				}
 
-				curTrick := tricks[len(tricks)-1]
 				nextPlayer := curTrick.Next
 				if nextPlayer.isZero() {
 					break
@@ -467,8 +465,7 @@ func TestGameWorkflow(t *testing.T) {
 		g.Apply(Action{Name: AssignTrumpAction, Player: starter, Suit: SpadesSuit})
 
 		curState := g.State()
-		tricks := curState.Round.Tricks
-		nextPlayer := tricks[len(tricks)-1].Next
+		nextPlayer := curState.Round.CurrentTrick.Next
 
 		// Try to play a card with invalid rank
 		_, err := g.Apply(Action{
@@ -493,8 +490,7 @@ func TestGameWorkflow(t *testing.T) {
 		g.Apply(Action{Name: AssignTrumpAction, Player: starter, Suit: HeartsSuit})
 
 		curState := g.State()
-		tricks := curState.Round.Tricks
-		firstPlayer := tricks[len(tricks)-1].Next
+		firstPlayer := curState.Round.CurrentTrick.Next
 
 		// First player plays any card (first playable)
 		hand1 := curState.Round.getHand(firstPlayer)
@@ -515,8 +511,7 @@ func TestGameWorkflow(t *testing.T) {
 
 		// Now check second player can only play playable cards
 		curState = g.State()
-		tricks = curState.Round.Tricks
-		secondPlayer := tricks[len(tricks)-1].Next
+		secondPlayer := curState.Round.CurrentTrick.Next
 		hand2 := curState.Round.getHand(secondPlayer)
 
 		for _, c := range hand2.Cards {
@@ -548,12 +543,11 @@ func TestGameWorkflow(t *testing.T) {
 
 		for {
 			curState = g.State()
-			tricks := curState.Round.Tricks
-			if len(tricks) == 0 {
+			curTrick := curState.Round.CurrentTrick
+			if curTrick.Number == 0 {
 				break
 			}
 
-			curTrick := tricks[len(tricks)-1]
 			nextPlayer := curTrick.Next
 			if nextPlayer.isZero() {
 				break
@@ -665,7 +659,7 @@ func TestGameWorkflow(t *testing.T) {
 			curState := g.State()
 
 			// If no tricks yet, the starter needs to assign trump
-			if len(curState.Round.Tricks) == 0 {
+			if curState.Round.CurrentTrick.Number == 0 {
 				starter := curState.Round.Trumper
 				playerInfo := curState.PlayersInfo[starter]
 
@@ -684,9 +678,7 @@ func TestGameWorkflow(t *testing.T) {
 				actionCount++
 			} else {
 				// Find next player to act
-				tricks := curState.Round.Tricks
-				curTrick := tricks[len(tricks)-1]
-				nextPlayer := curTrick.Next
+				nextPlayer := curState.Round.CurrentTrick.Next
 
 				if nextPlayer.isZero() {
 					t.Fatal("no next player but game not completed")
@@ -772,9 +764,9 @@ func TestGameWorkflow(t *testing.T) {
 
 			// Verify the next player waiting for input is a human
 			lastState := events[len(events)-1].GameState
-			tricks := lastState.Round.Tricks
-			if len(tricks) > 0 {
-				nextPlayer := tricks[len(tricks)-1].Next
+			curTrick := lastState.Round.CurrentTrick
+			if curTrick.Number > 0 {
+				nextPlayer := curTrick.Next
 				if !nextPlayer.isZero() {
 					playerInfo := lastState.PlayersInfo[nextPlayer]
 					if playerInfo.IsAI {

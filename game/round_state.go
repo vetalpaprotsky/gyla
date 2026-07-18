@@ -1,34 +1,39 @@
 package game
 
 type RoundState struct {
-	Number         int
-	Trumper        Player
-	TrumpedWithSix bool
-	Trump          Suit
-	Hands          []HandState
-	Tricks         []TrickState
-	WinTeam        Team
+	Number          int
+	Trumper         Player
+	TrumpedWithSix  bool
+	Trump           Suit
+	Hands           []HandState
+	CompletedTricks []TrickState
+	CurrentTrick    TrickState
+	WinTeam         Team
 }
 
 func newRoundState(r round) RoundState {
+	curTrick := r.currentTrick()
 	hands := make([]HandState, 0, len(r.hands))
 	for _, h := range r.hands {
-		hands = append(hands, h.state(r.currentTrick()))
+		hands = append(hands, h.state(curTrick))
 	}
 
-	tricks := make([]TrickState, 0, len(r.tricks))
+	completedTricks := make([]TrickState, 0, len(r.tricks))
 	for _, t := range r.tricks {
-		tricks = append(tricks, t.state())
+		if t.isCompleted() {
+			completedTricks = append(completedTricks, t.state())
+		}
 	}
 
 	return RoundState{
-		Number:         r.number,
-		Trumper:        r.starter,
-		TrumpedWithSix: r.trumpedWithSix,
-		Trump:          r.trump,
-		Hands:          hands,
-		Tricks:         tricks,
-		WinTeam:        r.winTeam(),
+		Number:          r.number,
+		Trumper:         r.starter,
+		TrumpedWithSix:  r.trumpedWithSix,
+		Trump:           r.trump,
+		Hands:           hands,
+		CompletedTricks: completedTricks,
+		CurrentTrick:    curTrick.state(),
+		WinTeam:         r.winTeam(),
 	}
 }
 
@@ -52,7 +57,8 @@ func (rs RoundState) ViewFor(p Player) RoundView {
 		LeftOpponentHand:  len(rs.getHand(p.leftOpponent()).Cards),
 		TeammateHand:      len(rs.getHand(p.teammate()).Cards),
 		RightOpponentHand: len(rs.getHand(p.rightOpponent()).Cards),
-		Tricks:            rs.Tricks,
+		CompletedTricks:   rs.CompletedTricks,
+		CurrentTrick:      rs.CurrentTrick,
 		WinTeam:           rs.WinTeam,
 	}
 }
@@ -66,6 +72,7 @@ type RoundView struct {
 	LeftOpponentHand  int
 	TeammateHand      int
 	RightOpponentHand int
-	Tricks            []TrickState
+	CompletedTricks   []TrickState
+	CurrentTrick      TrickState
 	WinTeam           Team
 }
